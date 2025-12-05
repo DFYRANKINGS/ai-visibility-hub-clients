@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      client_profile: {
+        Row: {
+          address_city: string | null
+          address_postal_code: string | null
+          address_state: string | null
+          address_street: string | null
+          articles: Json | null
+          awards: Json | null
+          case_studies: Json | null
+          created_at: string
+          email: string | null
+          entity_name: string
+          faqs: Json | null
+          founding_year: number | null
+          hours: string | null
+          id: string
+          legal_name: string | null
+          locations: Json | null
+          long_description: string | null
+          main_website_url: string | null
+          media_mentions: Json | null
+          owner_user_id: string
+          phone: string | null
+          products: Json | null
+          reviews: Json | null
+          same_as: Json | null
+          services: Json | null
+          short_description: string | null
+          team_members: Json | null
+          team_size: number | null
+          updated_at: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_postal_code?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          articles?: Json | null
+          awards?: Json | null
+          case_studies?: Json | null
+          created_at?: string
+          email?: string | null
+          entity_name: string
+          faqs?: Json | null
+          founding_year?: number | null
+          hours?: string | null
+          id?: string
+          legal_name?: string | null
+          locations?: Json | null
+          long_description?: string | null
+          main_website_url?: string | null
+          media_mentions?: Json | null
+          owner_user_id: string
+          phone?: string | null
+          products?: Json | null
+          reviews?: Json | null
+          same_as?: Json | null
+          services?: Json | null
+          short_description?: string | null
+          team_members?: Json | null
+          team_size?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string | null
+          address_postal_code?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          articles?: Json | null
+          awards?: Json | null
+          case_studies?: Json | null
+          created_at?: string
+          email?: string | null
+          entity_name?: string
+          faqs?: Json | null
+          founding_year?: number | null
+          hours?: string | null
+          id?: string
+          legal_name?: string | null
+          locations?: Json | null
+          long_description?: string | null
+          main_website_url?: string | null
+          media_mentions?: Json | null
+          owner_user_id?: string
+          phone?: string | null
+          products?: Json | null
+          reviews?: Json | null
+          same_as?: Json | null
+          services?: Json | null
+          short_description?: string | null
+          team_members?: Json | null
+          team_size?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
