@@ -1,1 +1,4 @@
 project_id = "jsshvzxnrlgzqtxrbcat"
+
+[functions.send-profile-email]
+verify_jwt = false
