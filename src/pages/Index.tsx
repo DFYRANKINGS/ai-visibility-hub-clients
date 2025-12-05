@@ -67,7 +67,8 @@ export default function Index() {
     }
 
     setSubmitting(true);
-    const { error } = await supabase.from('client_profile').insert({
+    
+    const profilePayload = {
       owner_user_id: user.id,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
@@ -94,17 +95,36 @@ export default function Index() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
-    } as any);
+    };
+
+    // Save to database
+    const { error } = await supabase.from('client_profile').insert(profilePayload as any);
+
+    if (error) {
+      setSubmitting(false);
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    // Send email notification via SendPulse
+    try {
+      const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
+        body: profilePayload,
+      });
+      
+      if (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail the submission, just log the error
+      }
+    } catch (emailErr) {
+      console.error('Email notification error:', emailErr);
+    }
 
     setSubmitting(false);
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved.' });
-      setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
-      setCurrentStep('entity');
-      setCompletedSteps([]);
-    }
+    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved and sent.' });
+    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
+    setCurrentStep('entity');
+    setCompletedSteps([]);
   };
 
   if (authLoading || !user) {
