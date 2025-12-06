@@ -1,9 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Connect to the agency Supabase project (shared with agency-assistant-gpt.lovable.app)
-// Project ID: iesadgbgprugtlycream
-const SUPABASE_URL = "https://iesadgbgprugtlycream.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllc2FkZ2JncHJ1Z3RseWNyZWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNTcxNzUsImV4cCI6MjA2NDYzMzE3NX0.quXlTFhTrBbMVI8dVf-ckNc4dFntlNcI3ny5F8ljpCg";
+const SUPABASE_URL = "https://cuqqzmjkrwlnarxbfwjw.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXF6bWprcndsbmFyeGJmd2p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTY3NDQsImV4cCI6MjA3Nzc3Mjc0NH0.lEykgqf7pK4PrXLRyl3L4aVGoqIt16rnOt2WSNnnOEk";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
