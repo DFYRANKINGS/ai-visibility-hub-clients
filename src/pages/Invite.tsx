@@ -17,16 +17,12 @@ export default function Invite() {
         return;
       }
 
-      console.log('Looking up token:', token);
-      
       // Look up the token in agency_invite_tokens table to get the owner_user_id
       const { data, error: lookupError } = await supabase
         .from('agency_invite_tokens')
         .select('owner_user_id')
         .eq('token', token)
         .maybeSingle();
-
-      console.log('Lookup result:', { data, error: lookupError });
 
       if (lookupError) {
         console.error('Token lookup error:', lookupError);
