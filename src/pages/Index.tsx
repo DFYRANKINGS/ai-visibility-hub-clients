@@ -60,6 +60,16 @@ export default function Index() {
 
   const handleSubmit = async () => {
     if (!user) return;
+    
+    // Get the agency owner's ID from localStorage (set during invite link access)
+    const agencyOwnerId = localStorage.getItem('agency_owner_id');
+    
+    if (!agencyOwnerId) {
+      toast({ title: 'Error', description: 'Invalid session. Please use your agency invite link.', variant: 'destructive' });
+      navigate('/auth');
+      return;
+    }
+    
     if (!formData.entity_name?.trim()) {
       toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
       setCurrentStep('entity');
@@ -69,7 +79,7 @@ export default function Index() {
     setSubmitting(true);
     
     const profilePayload = {
-      owner_user_id: user.id,
+      owner_user_id: agencyOwnerId,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
