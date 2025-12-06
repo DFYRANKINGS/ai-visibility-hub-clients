@@ -64,8 +64,13 @@ export default function Index() {
     // Get the agency owner's ID from localStorage (set during invite link access)
     const agencyOwnerId = localStorage.getItem('agency_owner_id');
     
-    if (!agencyOwnerId) {
-      toast({ title: 'Error', description: 'Invalid session. Please use your agency invite link.', variant: 'destructive' });
+    // Validate it's a proper UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    if (!agencyOwnerId || !uuidRegex.test(agencyOwnerId)) {
+      // Clear invalid data and redirect to re-validate
+      localStorage.removeItem('agency_owner_id');
+      toast({ title: 'Error', description: 'Invalid session. Please use your agency invite link again.', variant: 'destructive' });
       navigate('/auth');
       return;
     }
