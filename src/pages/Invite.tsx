@@ -17,21 +17,30 @@ export default function Invite() {
         return;
       }
 
+      console.log('Looking up token:', token);
+      
       // Look up the token in agency_invite_tokens table to get the owner_user_id
       const { data, error: lookupError } = await supabase
         .from('agency_invite_tokens')
-        .select('owner_user_id')
+        .select('owner_user_id, is_active')
         .eq('token', token)
         .maybeSingle();
 
+      console.log('Lookup result:', { data, error: lookupError });
+
       if (lookupError) {
         console.error('Token lookup error:', lookupError);
-        setError('Error validating invite link. Please try again.');
+        setError(`Error validating invite link: ${lookupError.message}`);
         return;
       }
 
       if (!data) {
-        setError('Invalid or expired invite link.');
+        setError('Invalid or expired invite link. Token not found in database.');
+        return;
+      }
+      
+      if (data.is_active === false) {
+        setError('This invite link has been deactivated.');
         return;
       }
 
