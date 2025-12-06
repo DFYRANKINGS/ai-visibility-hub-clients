@@ -22,7 +22,7 @@ export default function Invite() {
       // Look up the token in agency_invite_tokens table to get the owner_user_id
       const { data, error: lookupError } = await supabase
         .from('agency_invite_tokens')
-        .select('owner_user_id, is_active')
+        .select('owner_user_id')
         .eq('token', token)
         .maybeSingle();
 
@@ -36,11 +36,6 @@ export default function Invite() {
 
       if (!data) {
         setError('Invalid or expired invite link. Token not found in database.');
-        return;
-      }
-      
-      if (data.is_active === false) {
-        setError('This invite link has been deactivated.');
         return;
       }
 
