@@ -1,27 +1,65 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 export default function Invite() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    const token = searchParams.get('token');
-    
-    if (token) {
-      // Store token and redirect to auth with owner parameter
-      // The token IS the owner_user_id from the agency app
-      localStorage.setItem('agency_owner_id', token);
-      navigate(`/auth?owner=${token}`, { replace: true });
-    } else {
-      // No token, redirect to auth (will show invalid access)
-      navigate('/auth', { replace: true });
-    }
+    const validateToken = async () => {
+      const token = searchParams.get('token');
+      
+      if (!token) {
+        setError('Invalid invite link. No token provided.');
+        return;
+      }
+
+      // Look up the token in agency_invite_tokens table to get the owner_user_id
+      const { data, error: lookupError } = await supabase
+        .from('agency_invite_tokens')
+        .select('owner_user_id')
+        .eq('token', token)
+        .maybeSingle();
+
+      if (lookupError) {
+        console.error('Token lookup error:', lookupError);
+        setError('Error validating invite link. Please try again.');
+        return;
+      }
+
+      if (!data) {
+        setError('Invalid or expired invite link.');
+        return;
+      }
+
+      // Store the actual owner UUID (not the token hash)
+      localStorage.setItem('agency_owner_id', data.owner_user_id);
+      navigate(`/auth?owner=${data.owner_user_id}`, { replace: true });
+    };
+
+    validateToken();
   }, [searchParams, navigate]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
+        <div className="bg-card border border-border rounded-xl p-8 max-w-md text-center">
+          <h1 className="text-xl font-semibold text-destructive mb-2">Invalid Invite</h1>
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-      <p className="text-primary-foreground">Redirecting...</p>
+      <div className="flex items-center gap-2 text-primary-foreground">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <p>Validating invite link...</p>
+      </div>
     </div>
   );
 }
