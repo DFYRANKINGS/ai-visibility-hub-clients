@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/FormField';
 import { toast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Sparkles } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,8 +27,6 @@ export default function Auth() {
     }
   }, [agencyIdFromUrl]);
   
-  const hasValidAgencyId = agencyIdFromUrl || localStorage.getItem('agency_user_id');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -62,16 +60,6 @@ export default function Auth() {
           <p className="text-primary-foreground/70 mt-2">Client Portal</p>
         </div>
 
-        {!hasValidAgencyId && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm text-destructive font-medium">Invalid Access</p>
-              <p className="text-xs text-destructive/80 mt-1">Please use the link provided by your agency to access this portal.</p>
-            </div>
-          </div>
-        )}
-
         <div className="bg-card rounded-2xl shadow-card p-8">
           <h2 className="font-heading text-xl font-semibold text-foreground mb-6">
             {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -91,7 +79,7 @@ export default function Auth() {
               </div>
             </FormField>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading || !hasValidAgencyId}>
+            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
