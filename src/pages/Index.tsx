@@ -61,16 +61,15 @@ export default function Index() {
   const handleSubmit = async () => {
     if (!user) return;
     
-    // Get the agency owner's ID from localStorage (set during invite link access)
-    const agencyOwnerId = localStorage.getItem('agency_owner_id');
+    // Get the agency ID from localStorage (set during URL access)
+    const agencyUserId = localStorage.getItem('agency_user_id');
     
     // Validate it's a proper UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     
-    if (!agencyOwnerId || !uuidRegex.test(agencyOwnerId)) {
-      // Clear invalid data and redirect to re-validate
-      localStorage.removeItem('agency_owner_id');
-      toast({ title: 'Error', description: 'Invalid session. Please use your agency invite link again.', variant: 'destructive' });
+    if (!agencyUserId || !uuidRegex.test(agencyUserId)) {
+      localStorage.removeItem('agency_user_id');
+      toast({ title: 'Error', description: 'Invalid session. Please use your agency link again.', variant: 'destructive' });
       navigate('/auth');
       return;
     }
@@ -83,8 +82,9 @@ export default function Index() {
 
     setSubmitting(true);
     
+    // Insert into business_entities table with agency_user_id
     const profilePayload = {
-      owner_user_id: agencyOwnerId,
+      agency_user_id: agencyUserId,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
@@ -112,8 +112,8 @@ export default function Index() {
       case_studies: formData.case_studies || [],
     };
 
-    // Save to database
-    const { error } = await supabase.from('client_profile').insert(profilePayload as any);
+    // Save to business_entities table
+    const { error } = await supabase.from('business_entities').insert(profilePayload as any);
 
     if (error) {
       setSubmitting(false);
@@ -129,14 +129,13 @@ export default function Index() {
       
       if (emailError) {
         console.error('Email notification failed:', emailError);
-        // Don't fail the submission, just log the error
       }
     } catch (emailErr) {
       console.error('Email notification error:', emailErr);
     }
 
     setSubmitting(false);
-    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved and sent.' });
+    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved.' });
     setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
     setCurrentStep('entity');
     setCompletedSteps([]);
