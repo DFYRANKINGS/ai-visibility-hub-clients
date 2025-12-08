@@ -41,7 +41,10 @@ export default function Auth() {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       if (!isLogin) {
-        toast({ title: 'Success', description: 'Account created! You can now sign in.' });
+        toast({ 
+          title: 'Check your email', 
+          description: 'We sent you a confirmation link. Please check your email and click the link to verify your account before signing in.',
+        });
         setIsLogin(true);
       } else {
         navigate('/profile');
