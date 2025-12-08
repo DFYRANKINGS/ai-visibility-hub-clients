@@ -46,7 +46,7 @@ export default function Auth() {
         toast({ title: 'Success', description: 'Account created! You can now sign in.' });
         setIsLogin(true);
       } else {
-        navigate('/');
+        navigate('/profile');
       }
     }
   };
