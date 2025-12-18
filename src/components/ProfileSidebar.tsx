@@ -13,7 +13,8 @@ import {
   Award, 
   Newspaper, 
   FolderKanban,
-  ClipboardCheck
+  ClipboardCheck,
+  BadgeCheck
 } from 'lucide-react';
 
 interface ProfileSidebarProps {
@@ -24,6 +25,7 @@ interface ProfileSidebarProps {
 
 const steps: { id: FormStep; label: string; description: string; icon: React.ElementType }[] = [
   { id: 'entity', label: 'Organization', description: 'Basic business information', icon: Building2 },
+  { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
   { id: 'services', label: 'Services', description: 'What you offer', icon: Briefcase },
   { id: 'products', label: 'Products', description: 'Items for sale', icon: Package },
   { id: 'faqs', label: 'FAQs', description: 'Common questions', icon: HelpCircle },

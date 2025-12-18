@@ -98,6 +98,43 @@ export interface CaseStudy {
   outcome_metrics: string;
 }
 
+export interface Certification {
+  name: string;
+  issuing_body: string;
+  date_obtained?: string;
+  expiration_date?: string;
+  credential_id?: string;
+}
+
+export interface Accreditation {
+  name: string;
+  accrediting_body: string;
+  date_obtained?: string;
+  expiration_date?: string;
+}
+
+export interface InsuranceAccepted {
+  name: string;
+  plan_types?: string;
+}
+
+export interface LegalProfile {
+  bar_numbers?: string[];
+  practice_areas?: string[];
+  jurisdictions?: string[];
+  court_admissions?: string[];
+}
+
+export interface MedicalProfile {
+  npi_number?: string;
+  medical_license?: string;
+  specialties?: string[];
+  hospital_affiliations?: string[];
+  board_certifications?: string[];
+}
+
+export type BusinessVertical = 'general' | 'legal' | 'medical';
+
 export interface ClientProfile {
   id?: string;
   owner_user_id: string;
@@ -128,10 +165,26 @@ export interface ClientProfile {
   case_studies?: CaseStudy[];
   created_at?: string;
   updated_at?: string;
+  // New fields
+  vertical?: BusinessVertical;
+  certifications?: Certification[];
+  accreditations?: Accreditation[];
+  insurance_accepted?: InsuranceAccepted[];
+  // Entity Linking URLs
+  gmb_url?: string;
+  apple_maps_url?: string;
+  yelp_url?: string;
+  bbb_url?: string;
+  tiktok_url?: string;
+  pinterest_url?: string;
+  // Vertical-specific profiles
+  legal_profile?: LegalProfile;
+  medical_profile?: MedicalProfile;
 }
 
 export type FormStep = 
   | 'entity'
+  | 'credentials'
   | 'services'
   | 'products'
   | 'faqs'

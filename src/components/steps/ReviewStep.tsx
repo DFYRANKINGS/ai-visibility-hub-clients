@@ -1,14 +1,17 @@
 import { ClientProfile } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
-import { Check, Building2, Briefcase, Package, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban } from 'lucide-react';
+import { Check, Building2, Briefcase, Package, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban, BadgeCheck } from 'lucide-react';
 
 interface ReviewStepProps {
   data: Partial<ClientProfile>;
 }
 
 export function ReviewStep({ data }: ReviewStepProps) {
+  const credentialsCount = (data.certifications?.length || 0) + (data.accreditations?.length || 0) + (data.insurance_accepted?.length || 0);
+  
   const sections = [
     { icon: Building2, label: 'Organization', filled: !!data.entity_name },
+    { icon: BadgeCheck, label: 'Credentials', count: credentialsCount },
     { icon: Briefcase, label: 'Services', count: data.services?.length || 0 },
     { icon: Package, label: 'Products', count: data.products?.length || 0 },
     { icon: HelpCircle, label: 'FAQs', count: data.faqs?.length || 0 },
