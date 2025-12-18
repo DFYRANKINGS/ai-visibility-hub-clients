@@ -30,6 +30,8 @@ export default function ProfilePage() {
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -43,6 +45,72 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
+
+  // Load existing profile data when user logs in
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      setLoadingProfile(true);
+      const { data, error } = await supabase
+        .from('client_profile')
+        .select('*')
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error loading profile:', error);
+        toast({ title: 'Error', description: 'Failed to load profile data', variant: 'destructive' });
+      } else if (data) {
+        setProfileId(data.id);
+        setFormData({
+          entity_name: data.entity_name,
+          main_website_url: data.main_website_url || undefined,
+          short_description: data.short_description || undefined,
+          long_description: data.long_description || undefined,
+          hours: data.hours || undefined,
+          founding_year: data.founding_year || undefined,
+          team_size: data.team_size || undefined,
+          address_street: data.address_street || undefined,
+          address_city: data.address_city || undefined,
+          address_state: data.address_state || undefined,
+          address_postal_code: data.address_postal_code || undefined,
+          phone: data.phone || undefined,
+          email: data.email || undefined,
+          same_as: (data.same_as as string[]) || [],
+          services: (data.services as any[]) || [],
+          products: (data.products as any[]) || [],
+          faqs: (data.faqs as any[]) || [],
+          articles: (data.articles as any[]) || [],
+          reviews: (data.reviews as any[]) || [],
+          locations: (data.locations as any[]) || [],
+          team_members: (data.team_members as any[]) || [],
+          awards: (data.awards as any[]) || [],
+          media_mentions: (data.media_mentions as any[]) || [],
+          case_studies: (data.case_studies as any[]) || [],
+        });
+        // Mark steps with data as completed
+        const stepsWithData: FormStep[] = [];
+        if (data.entity_name) stepsWithData.push('entity');
+        if ((data.services as any[])?.length > 0) stepsWithData.push('services');
+        if ((data.products as any[])?.length > 0) stepsWithData.push('products');
+        if ((data.faqs as any[])?.length > 0) stepsWithData.push('faqs');
+        if ((data.articles as any[])?.length > 0) stepsWithData.push('articles');
+        if ((data.reviews as any[])?.length > 0) stepsWithData.push('reviews');
+        if ((data.locations as any[])?.length > 0) stepsWithData.push('locations');
+        if ((data.team_members as any[])?.length > 0) stepsWithData.push('team');
+        if ((data.awards as any[])?.length > 0) stepsWithData.push('awards');
+        if ((data.media_mentions as any[])?.length > 0) stepsWithData.push('media');
+        if ((data.case_studies as any[])?.length > 0) stepsWithData.push('cases');
+        setCompletedSteps(stepsWithData);
+      }
+      setLoadingProfile(false);
+    };
+    
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
 
   const validateEntity = () => {
     const newErrors: Record<string, string> = {};
@@ -84,34 +152,78 @@ export default function ProfilePage() {
     setSidebarOpen(false);
   };
 
-  const handleSaveSection = () => {
+  const handleSaveSection = async () => {
+    if (!user) return;
     if (currentStep === 'entity' && !validateEntity()) return;
     
     setSaving(true);
+    
+    const profilePayload = {
+      owner_user_id: user.id,
+      entity_name: formData.entity_name || 'Untitled',
+      main_website_url: formData.main_website_url || null,
+      short_description: formData.short_description || null,
+      long_description: formData.long_description || null,
+      hours: formData.hours || null,
+      founding_year: formData.founding_year || null,
+      team_size: formData.team_size || null,
+      address_street: formData.address_street || null,
+      address_city: formData.address_city || null,
+      address_state: formData.address_state || null,
+      address_postal_code: formData.address_postal_code || null,
+      phone: formData.phone || null,
+      email: formData.email || null,
+      same_as: formData.same_as || [],
+      services: formData.services || [],
+      products: formData.products || [],
+      faqs: formData.faqs || [],
+      articles: formData.articles || [],
+      reviews: formData.reviews || [],
+      locations: formData.locations || [],
+      team_members: formData.team_members || [],
+      awards: formData.awards || [],
+      media_mentions: formData.media_mentions || [],
+      case_studies: formData.case_studies || [],
+    };
+
+    let error;
+    if (profileId) {
+      // Update existing profile
+      const result = await supabase
+        .from('client_profile')
+        .update(profilePayload)
+        .eq('id', profileId);
+      error = result.error;
+    } else {
+      // Insert new profile
+      const result = await supabase
+        .from('client_profile')
+        .insert(profilePayload)
+        .select('id')
+        .single();
+      error = result.error;
+      if (result.data) {
+        setProfileId(result.data.id);
+      }
+    }
+
+    setSaving(false);
+    
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
     
     // Mark current step as completed
     if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
       setCompletedSteps(prev => [...prev, currentStep]);
     }
     
-    setTimeout(() => {
-      setSaving(false);
-      toast({ title: 'Section saved', description: 'Your changes have been saved locally.' });
-    }, 300);
+    toast({ title: 'Section saved', description: 'Your changes have been saved to the database.' });
   };
 
   const handleSubmit = async () => {
     if (!user) return;
-    
-    const agencyUserId = localStorage.getItem('agency_user_id');
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    
-    if (!agencyUserId || !uuidRegex.test(agencyUserId)) {
-      localStorage.removeItem('agency_user_id');
-      toast({ title: 'Error', description: 'Invalid session. Please use your agency link again.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
     
     if (!formData.entity_name?.trim()) {
       toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
@@ -122,7 +234,7 @@ export default function ProfilePage() {
     setSubmitting(true);
     
     const profilePayload = {
-      agency_user_id: agencyUserId,
+      owner_user_id: user.id,
       entity_name: formData.entity_name,
       main_website_url: formData.main_website_url || null,
       short_description: formData.short_description || null,
@@ -147,21 +259,26 @@ export default function ProfilePage() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
-      vertical: formData.vertical || 'general',
-      certifications: formData.certifications || [],
-      accreditations: formData.accreditations || [],
-      insurance_accepted: formData.insurance_accepted || [],
-      gmb_url: formData.gmb_url || null,
-      apple_maps_url: formData.apple_maps_url || null,
-      yelp_url: formData.yelp_url || null,
-      bbb_url: formData.bbb_url || null,
-      tiktok_url: formData.tiktok_url || null,
-      pinterest_url: formData.pinterest_url || null,
-      legal_profile: formData.vertical === 'legal' ? (formData.legal_profile || null) : null,
-      medical_profile: formData.vertical === 'medical' ? (formData.medical_profile || null) : null,
     };
 
-    const { error } = await supabase.from('business_entities').insert(profilePayload as any);
+    let error;
+    if (profileId) {
+      const result = await supabase
+        .from('client_profile')
+        .update(profilePayload)
+        .eq('id', profileId);
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from('client_profile')
+        .insert(profilePayload)
+        .select('id')
+        .single();
+      error = result.error;
+      if (result.data) {
+        setProfileId(result.data.id);
+      }
+    }
 
     if (error) {
       setSubmitting(false);
@@ -171,7 +288,7 @@ export default function ProfilePage() {
 
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
-        body: profilePayload,
+        body: { ...profilePayload, user_email: user.email },
       });
       if (emailError) console.error('Email notification failed:', emailError);
     } catch (emailErr) {
@@ -179,18 +296,10 @@ export default function ProfilePage() {
     }
 
     setSubmitting(false);
-    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved.' });
-    setFormData({ 
-      services: [], products: [], faqs: [], articles: [], reviews: [], 
-      locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
-      certifications: [], accreditations: [], insurance_accepted: [],
-      vertical: 'general',
-    });
-    setCurrentStep('entity');
-    setCompletedSteps([]);
+    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been submitted.' });
   };
 
-  if (authLoading || !user) {
+  if (authLoading || loadingProfile || !user) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
