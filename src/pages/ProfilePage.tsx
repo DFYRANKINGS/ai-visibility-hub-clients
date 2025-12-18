@@ -124,7 +124,6 @@ export default function ProfilePage() {
     const profilePayload = {
       agency_user_id: agencyUserId,
       entity_name: formData.entity_name,
-      legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
@@ -148,7 +147,6 @@ export default function ProfilePage() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
-      // New fields
       vertical: formData.vertical || 'general',
       certifications: formData.certifications || [],
       accreditations: formData.accreditations || [],
@@ -159,8 +157,8 @@ export default function ProfilePage() {
       bbb_url: formData.bbb_url || null,
       tiktok_url: formData.tiktok_url || null,
       pinterest_url: formData.pinterest_url || null,
-      legal_profile: formData.legal_profile || null,
-      medical_profile: formData.medical_profile || null,
+      legal_profile: formData.vertical === 'legal' ? (formData.legal_profile || null) : null,
+      medical_profile: formData.vertical === 'medical' ? (formData.medical_profile || null) : null,
     };
 
     const { error } = await supabase.from('business_entities').insert(profilePayload as any);
