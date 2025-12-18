@@ -36,7 +36,14 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
+    if (!authLoading) {
+      if (!user) {
+        navigate('/auth');
+      } else {
+        // Redirect authenticated users to profile page for consistent sidebar navigation
+        navigate('/profile');
+      }
+    }
   }, [user, authLoading, navigate]);
 
   const currentIndex = steps.indexOf(currentStep);
