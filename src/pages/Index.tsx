@@ -158,7 +158,10 @@ export default function Index() {
               <p className="text-xs text-muted-foreground">Client Portal</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => signOut()}><LogOut className="w-4 h-4 mr-2" />Sign Out</Button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+            <Button variant="ghost" size="sm" onClick={() => signOut()}><LogOut className="w-4 h-4 mr-2" />Sign Out</Button>
+          </div>
         </div>
       </header>
 
