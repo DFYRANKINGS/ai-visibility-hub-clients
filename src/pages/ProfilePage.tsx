@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep } from '@/types/profile';
-import { FormProgress } from '@/components/FormProgress';
+import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
 import { ProductsStep } from '@/components/steps/ProductsStep';
@@ -18,7 +18,7 @@ import { CasesStep } from '@/components/steps/CasesStep';
 import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Send, Sparkles, LogOut, Loader2 } from 'lucide-react';
+import { Send, Sparkles, LogOut, Loader2, Save, Menu, X } from 'lucide-react';
 
 const steps: FormStep[] = ['entity', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
@@ -28,7 +28,9 @@ export default function ProfilePage() {
   const [currentStep, setCurrentStep] = useState<FormStep>('entity');
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [formData, setFormData] = useState<Partial<ClientProfile>>({
     services: [], products: [], faqs: [], articles: [], reviews: [],
@@ -39,8 +41,6 @@ export default function ProfilePage() {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  const currentIndex = steps.indexOf(currentStep);
-
   const validateEntity = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.entity_name?.trim()) newErrors.entity_name = 'Entity name is required';
@@ -48,14 +48,48 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const goNext = () => {
-    if (currentStep === 'entity' && !validateEntity()) return;
-    if (!completedSteps.includes(currentStep)) setCompletedSteps([...completedSteps, currentStep]);
-    if (currentIndex < steps.length - 1) setCurrentStep(steps[currentIndex + 1]);
+  const handleStepClick = (step: FormStep) => {
+    // Mark current step as completed if it has data
+    if (currentStep === 'entity' && formData.entity_name?.trim()) {
+      if (!completedSteps.includes('entity')) {
+        setCompletedSteps(prev => [...prev, 'entity']);
+      }
+    } else if (currentStep !== 'entity' && currentStep !== 'review') {
+      const stepDataMap: Record<string, any> = {
+        services: formData.services,
+        products: formData.products,
+        faqs: formData.faqs,
+        articles: formData.articles,
+        reviews: formData.reviews,
+        locations: formData.locations,
+        team: formData.team_members,
+        awards: formData.awards,
+        media: formData.media_mentions,
+        cases: formData.case_studies,
+      };
+      if (stepDataMap[currentStep]?.length > 0 && !completedSteps.includes(currentStep)) {
+        setCompletedSteps(prev => [...prev, currentStep]);
+      }
+    }
+    
+    setCurrentStep(step);
+    setSidebarOpen(false);
   };
 
-  const goPrev = () => {
-    if (currentIndex > 0) setCurrentStep(steps[currentIndex - 1]);
+  const handleSaveSection = () => {
+    if (currentStep === 'entity' && !validateEntity()) return;
+    
+    setSaving(true);
+    
+    // Mark current step as completed
+    if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
+      setCompletedSteps(prev => [...prev, currentStep]);
+    }
+    
+    setTimeout(() => {
+      setSaving(false);
+      toast({ title: 'Section saved', description: 'Your changes have been saved locally.' });
+    }, 300);
   };
 
   const handleSubmit = async () => {
@@ -136,11 +170,32 @@ export default function ProfilePage() {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
+  const stepLabels: Record<FormStep, string> = {
+    entity: 'Organization',
+    services: 'Services',
+    products: 'Products',
+    faqs: 'FAQs',
+    articles: 'Articles',
+    reviews: 'Reviews',
+    locations: 'Locations',
+    team: 'Team',
+    awards: 'Awards',
+    media: 'Media',
+    cases: 'Case Studies',
+    review: 'Review & Submit',
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button 
+              className="lg:hidden p-2 -ml-2 hover:bg-muted rounded-lg"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -153,35 +208,79 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <FormProgress currentStep={currentStep} completedSteps={completedSteps} />
-
-        <div className="mt-8">
-          {currentStep === 'entity' && <EntityStep data={formData} onChange={setFormData} errors={errors} />}
-          {currentStep === 'services' && <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />}
-          {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => setFormData({ ...formData, products: p })} />}
-          {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => setFormData({ ...formData, faqs: f })} />}
-          {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => setFormData({ ...formData, articles: a })} />}
-          {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => setFormData({ ...formData, reviews: r })} />}
-          {currentStep === 'locations' && <LocationsStep locations={formData.locations || []} onChange={(l) => setFormData({ ...formData, locations: l })} />}
-          {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => setFormData({ ...formData, team_members: t })} />}
-          {currentStep === 'awards' && <AwardsStep awards={formData.awards || []} onChange={(a) => setFormData({ ...formData, awards: a })} />}
-          {currentStep === 'media' && <MediaStep mediaMentions={formData.media_mentions || []} onChange={(m) => setFormData({ ...formData, media_mentions: m })} />}
-          {currentStep === 'cases' && <CasesStep caseStudies={formData.case_studies || []} onChange={(c) => setFormData({ ...formData, case_studies: c })} />}
-          {currentStep === 'review' && <ReviewStep data={formData} />}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
+        {/* Sidebar */}
+        <div className={`
+          fixed lg:relative inset-y-0 left-0 z-50 lg:z-0
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          top-[73px] lg:top-0
+        `}>
+          <ProfileSidebar 
+            currentStep={currentStep} 
+            completedSteps={completedSteps}
+            onStepClick={handleStepClick}
+          />
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
-          <Button variant="outline" onClick={goPrev} disabled={currentIndex === 0}><ArrowLeft className="w-4 h-4 mr-2" />Back</Button>
-          {currentStep === 'review' ? (
-            <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" />Submit Profile</>}
-            </Button>
-          ) : (
-            <Button variant="default" onClick={goNext}>Next<ArrowRight className="w-4 h-4 ml-2" /></Button>
-          )}
-        </div>
-      </main>
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 py-8">
+            {/* Mobile current step indicator */}
+            <div className="lg:hidden mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{stepLabels[currentStep]}</span>
+              <span>•</span>
+              <span>{steps.indexOf(currentStep) + 1} of {steps.length}</span>
+            </div>
+
+            <div className="space-y-6">
+              {currentStep === 'entity' && <EntityStep data={formData} onChange={setFormData} errors={errors} />}
+              {currentStep === 'services' && <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />}
+              {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => setFormData({ ...formData, products: p })} />}
+              {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => setFormData({ ...formData, faqs: f })} />}
+              {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => setFormData({ ...formData, articles: a })} />}
+              {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => setFormData({ ...formData, reviews: r })} />}
+              {currentStep === 'locations' && <LocationsStep locations={formData.locations || []} onChange={(l) => setFormData({ ...formData, locations: l })} />}
+              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => setFormData({ ...formData, team_members: t })} />}
+              {currentStep === 'awards' && <AwardsStep awards={formData.awards || []} onChange={(a) => setFormData({ ...formData, awards: a })} />}
+              {currentStep === 'media' && <MediaStep mediaMentions={formData.media_mentions || []} onChange={(m) => setFormData({ ...formData, media_mentions: m })} />}
+              {currentStep === 'cases' && <CasesStep caseStudies={formData.case_studies || []} onChange={(c) => setFormData({ ...formData, case_studies: c })} />}
+              {currentStep === 'review' && <ReviewStep data={formData} />}
+            </div>
+
+            {/* Action buttons */}
+            <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+              {currentStep !== 'review' ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Save your progress before moving to another section
+                  </p>
+                  <Button onClick={handleSaveSection} disabled={saving}>
+                    {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : <><Save className="w-4 h-4 mr-2" />Save Section</>}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Review your profile and submit when ready
+                  </p>
+                  <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
+                    {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" />Submit Profile</>}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
