@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
+import { CredentialsStep } from '@/components/steps/CredentialsStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
 import { ProductsStep } from '@/components/steps/ProductsStep';
 import { FAQsStep } from '@/components/steps/FAQsStep';
@@ -20,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X } from 'lucide-react';
 
-const steps: FormStep[] = ['entity', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
+const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -35,6 +36,8 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState<Partial<ClientProfile>>({
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
+    certifications: [], accreditations: [], insurance_accepted: [],
+    vertical: 'general',
   });
 
   useEffect(() => {
@@ -50,24 +53,29 @@ export default function ProfilePage() {
 
   const handleStepClick = (step: FormStep) => {
     // Mark current step as completed if it has data
-    if (currentStep === 'entity' && formData.entity_name?.trim()) {
-      if (!completedSteps.includes('entity')) {
-        setCompletedSteps(prev => [...prev, 'entity']);
-      }
-    } else if (currentStep !== 'entity' && currentStep !== 'review') {
-      const stepDataMap: Record<string, any> = {
-        services: formData.services,
-        products: formData.products,
-        faqs: formData.faqs,
-        articles: formData.articles,
-        reviews: formData.reviews,
-        locations: formData.locations,
-        team: formData.team_members,
-        awards: formData.awards,
-        media: formData.media_mentions,
-        cases: formData.case_studies,
-      };
-      if (stepDataMap[currentStep]?.length > 0 && !completedSteps.includes(currentStep)) {
+    const stepDataMap: Record<string, any> = {
+      entity: formData.entity_name?.trim(),
+      credentials: (formData.certifications?.length || 0) > 0 || 
+                   (formData.accreditations?.length || 0) > 0 || 
+                   (formData.insurance_accepted?.length || 0) > 0,
+      services: formData.services,
+      products: formData.products,
+      faqs: formData.faqs,
+      articles: formData.articles,
+      reviews: formData.reviews,
+      locations: formData.locations,
+      team: formData.team_members,
+      awards: formData.awards,
+      media: formData.media_mentions,
+      cases: formData.case_studies,
+    };
+
+    if (currentStep !== 'review') {
+      const hasData = currentStep === 'entity' || currentStep === 'credentials' 
+        ? stepDataMap[currentStep]
+        : stepDataMap[currentStep]?.length > 0;
+      
+      if (hasData && !completedSteps.includes(currentStep)) {
         setCompletedSteps(prev => [...prev, currentStep]);
       }
     }
@@ -140,6 +148,19 @@ export default function ProfilePage() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
+      // New fields
+      vertical: formData.vertical || 'general',
+      certifications: formData.certifications || [],
+      accreditations: formData.accreditations || [],
+      insurance_accepted: formData.insurance_accepted || [],
+      gmb_url: formData.gmb_url || null,
+      apple_maps_url: formData.apple_maps_url || null,
+      yelp_url: formData.yelp_url || null,
+      bbb_url: formData.bbb_url || null,
+      tiktok_url: formData.tiktok_url || null,
+      pinterest_url: formData.pinterest_url || null,
+      legal_profile: formData.legal_profile || null,
+      medical_profile: formData.medical_profile || null,
     };
 
     const { error } = await supabase.from('business_entities').insert(profilePayload as any);
@@ -161,7 +182,12 @@ export default function ProfilePage() {
 
     setSubmitting(false);
     toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved.' });
-    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
+    setFormData({ 
+      services: [], products: [], faqs: [], articles: [], reviews: [], 
+      locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
+      certifications: [], accreditations: [], insurance_accepted: [],
+      vertical: 'general',
+    });
     setCurrentStep('entity');
     setCompletedSteps([]);
   };
@@ -172,6 +198,7 @@ export default function ProfilePage() {
 
   const stepLabels: Record<FormStep, string> = {
     entity: 'Organization',
+    credentials: 'Credentials',
     services: 'Services',
     products: 'Products',
     faqs: 'FAQs',
@@ -243,6 +270,7 @@ export default function ProfilePage() {
 
             <div className="space-y-6">
               {currentStep === 'entity' && <EntityStep data={formData} onChange={setFormData} errors={errors} />}
+              {currentStep === 'credentials' && <CredentialsStep data={formData} onChange={setFormData} />}
               {currentStep === 'services' && <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />}
               {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => setFormData({ ...formData, products: p })} />}
               {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => setFormData({ ...formData, faqs: f })} />}

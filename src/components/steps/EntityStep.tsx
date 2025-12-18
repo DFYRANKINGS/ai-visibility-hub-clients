@@ -1,8 +1,9 @@
-import { ClientProfile } from '@/types/profile';
+import { ClientProfile, BusinessVertical } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EntityStepProps {
   data: Partial<ClientProfile>;
@@ -36,6 +37,22 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
               value={data.legal_name || ''}
               onChange={(e) => handleChange('legal_name', e.target.value)}
             />
+          </FormField>
+
+          <FormField label="Business Vertical" hint="Select your industry type">
+            <Select
+              value={data.vertical || 'general'}
+              onValueChange={(value: BusinessVertical) => handleChange('vertical', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select vertical" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General Business</SelectItem>
+                <SelectItem value="legal">Legal Services</SelectItem>
+                <SelectItem value="medical">Medical/Healthcare</SelectItem>
+              </SelectContent>
+            </Select>
           </FormField>
 
           <FormField label="Website URL">
@@ -151,6 +168,67 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
               placeholder="10001"
               value={data.address_postal_code || ''}
               onChange={(e) => handleChange('address_postal_code', e.target.value)}
+            />
+          </FormField>
+        </div>
+      </FormCard>
+
+      <FormCard 
+        title="Entity Linking" 
+        description="Link your business profiles across major platforms."
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Google Business Profile URL">
+            <Input
+              type="url"
+              placeholder="https://maps.google.com/..."
+              value={data.gmb_url || ''}
+              onChange={(e) => handleChange('gmb_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Apple Maps URL">
+            <Input
+              type="url"
+              placeholder="https://maps.apple.com/..."
+              value={data.apple_maps_url || ''}
+              onChange={(e) => handleChange('apple_maps_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Yelp URL">
+            <Input
+              type="url"
+              placeholder="https://www.yelp.com/biz/..."
+              value={data.yelp_url || ''}
+              onChange={(e) => handleChange('yelp_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="BBB URL">
+            <Input
+              type="url"
+              placeholder="https://www.bbb.org/..."
+              value={data.bbb_url || ''}
+              onChange={(e) => handleChange('bbb_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="TikTok URL">
+            <Input
+              type="url"
+              placeholder="https://www.tiktok.com/@..."
+              value={data.tiktok_url || ''}
+              onChange={(e) => handleChange('tiktok_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Pinterest URL">
+            <Input
+              type="url"
+              placeholder="https://www.pinterest.com/..."
+              value={data.pinterest_url || ''}
+              onChange={(e) => handleChange('pinterest_url', e.target.value)}
             />
           </FormField>
         </div>
