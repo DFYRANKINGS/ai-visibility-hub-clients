@@ -30,14 +30,6 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
               onChange={(e) => handleChange('entity_name', e.target.value)}
             />
           </FormField>
-          
-          <FormField label="Legal Name" hint="If different from entity name">
-            <Input
-              placeholder="Legal Business Name"
-              value={data.legal_name || ''}
-              onChange={(e) => handleChange('legal_name', e.target.value)}
-            />
-          </FormField>
 
           <FormField label="Business Vertical" hint="Select your industry type">
             <Select
