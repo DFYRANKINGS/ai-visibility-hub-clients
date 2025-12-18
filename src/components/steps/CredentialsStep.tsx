@@ -54,6 +54,15 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
 
   return (
     <div className="space-y-6">
+      {/* Show current vertical selection */}
+      <div className="bg-muted/50 rounded-lg p-3 text-sm">
+        <span className="text-muted-foreground">Business Vertical: </span>
+        <span className="font-medium text-foreground capitalize">{vertical === 'general' ? 'General Business' : vertical === 'legal' ? 'Legal Services' : vertical === 'medical' ? 'Medical/Healthcare' : vertical}</span>
+        {vertical !== 'general' && (
+          <span className="text-muted-foreground ml-2">— Scroll down for {vertical}-specific fields</span>
+        )}
+      </div>
+
       {/* Certifications */}
       <FormCard title="Certifications" description="Professional certifications and credentials.">
         <div className="space-y-4">
