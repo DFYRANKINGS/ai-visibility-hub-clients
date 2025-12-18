@@ -23,6 +23,38 @@ import { Send, Sparkles, LogOut, Loader2, Save, Menu, X } from 'lucide-react';
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
+const profileDraftKey = (userId: string) => `aivp:draft:${userId}`;
+
+const loadProfileDraft = (userId: string): Partial<ClientProfile> | null => {
+  try {
+    const raw = localStorage.getItem(profileDraftKey(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { __savedAt, ...draft } = parsed;
+    return draft as Partial<ClientProfile>;
+  } catch {
+    return null;
+  }
+};
+
+const saveProfileDraft = (userId: string, data: Partial<ClientProfile>) => {
+  try {
+    localStorage.setItem(
+      profileDraftKey(userId),
+      JSON.stringify({ ...data, __savedAt: Date.now() })
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const isMissingColumnError = (message?: string) => {
+  const m = (message || '').toLowerCase();
+  return m.includes('column') && (m.includes('does not exist') || m.includes('schema cache'));
+};
+
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -50,33 +82,55 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
-      
+
+      const draft = loadProfileDraft(user.id);
+
       setLoadingProfile(true);
       const { data, error } = await supabase
         .from('client_profile')
         .select('*')
         .eq('owner_user_id', user.id)
         .maybeSingle();
-      
+
       if (error) {
         console.error('Error loading profile:', error);
-        toast({ title: 'Error', description: 'Failed to load profile data', variant: 'destructive' });
-      } else if (data) {
+        // If database load fails, still restore draft so the user doesn't lose work.
+        if (draft) {
+          setFormData((prev) => ({ ...prev, ...draft }));
+          toast({
+            title: 'Loaded from local draft',
+            description: 'We could not load your profile from the database, so we restored your latest draft from this browser.',
+          });
+        } else {
+          toast({ title: 'Error', description: 'Failed to load profile data', variant: 'destructive' });
+        }
+        setLoadingProfile(false);
+        return;
+      }
+
+      if (data) {
         setProfileId(data.id);
-        setFormData({
+
+        const fromDb: Partial<ClientProfile> = {
           entity_name: data.entity_name,
+          legal_name: (data as any).legal_name || undefined,
+          vertical: (data as any).vertical || undefined,
+
           main_website_url: data.main_website_url || undefined,
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
           hours: data.hours || undefined,
           founding_year: data.founding_year || undefined,
           team_size: data.team_size || undefined,
+
           address_street: data.address_street || undefined,
           address_city: data.address_city || undefined,
           address_state: data.address_state || undefined,
           address_postal_code: data.address_postal_code || undefined,
+
           phone: data.phone || undefined,
           email: data.email || undefined,
+
           same_as: (data.same_as as string[]) || [],
           services: (data.services as any[]) || [],
           products: (data.products as any[]) || [],
@@ -88,10 +142,24 @@ export default function ProfilePage() {
           awards: (data.awards as any[]) || [],
           media_mentions: (data.media_mentions as any[]) || [],
           case_studies: (data.case_studies as any[]) || [],
-        });
+
+          // Credentials + vertical-specific
+          certifications: ((data as any).certifications as any[]) || [],
+          accreditations: ((data as any).accreditations as any[]) || [],
+          insurance_accepted: ((data as any).insurance_accepted as any[]) || [],
+          legal_profile: ((data as any).legal_profile as any) || undefined,
+          medical_profile: ((data as any).medical_profile as any) || undefined,
+        };
+
+        // Merge: defaults -> draft -> db (db wins where it has data)
+        setFormData((prev) => ({ ...prev, ...(draft ?? {}), ...fromDb }));
+
         // Mark steps with data as completed
         const stepsWithData: FormStep[] = [];
         if (data.entity_name) stepsWithData.push('entity');
+        if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0 || ((fromDb.insurance_accepted as any[])?.length || 0) > 0) {
+          stepsWithData.push('credentials');
+        }
         if ((data.services as any[])?.length > 0) stepsWithData.push('services');
         if ((data.products as any[])?.length > 0) stepsWithData.push('products');
         if ((data.faqs as any[])?.length > 0) stepsWithData.push('faqs');
@@ -103,10 +171,14 @@ export default function ProfilePage() {
         if ((data.media_mentions as any[])?.length > 0) stepsWithData.push('media');
         if ((data.case_studies as any[])?.length > 0) stepsWithData.push('cases');
         setCompletedSteps(stepsWithData);
+      } else if (draft) {
+        // No database row yet, but we have a draft.
+        setFormData((prev) => ({ ...prev, ...draft }));
       }
+
       setLoadingProfile(false);
     };
-    
+
     if (user) {
       loadProfile();
     }
@@ -157,22 +229,31 @@ export default function ProfilePage() {
     if (currentStep === 'entity' && !validateEntity()) return;
     
     setSaving(true);
-    
-    const profilePayload = {
+
+    // Always save a draft in this browser so sign-out/in doesn't lose work.
+    saveProfileDraft(user.id, formData);
+
+    const profilePayload: any = {
       owner_user_id: user.id,
       entity_name: formData.entity_name || 'Untitled',
+      legal_name: (formData as any).legal_name || null,
+      vertical: (formData as any).vertical || 'general',
+
       main_website_url: formData.main_website_url || null,
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
       hours: formData.hours || null,
       founding_year: formData.founding_year || null,
       team_size: formData.team_size || null,
+
       address_street: formData.address_street || null,
       address_city: formData.address_city || null,
       address_state: formData.address_state || null,
       address_postal_code: formData.address_postal_code || null,
+
       phone: formData.phone || null,
       email: formData.email || null,
+
       same_as: formData.same_as || [],
       services: formData.services || [],
       products: formData.products || [],
@@ -184,18 +265,23 @@ export default function ProfilePage() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
+
+      // Credentials + vertical-specific
+      certifications: (formData as any).certifications || [],
+      accreditations: (formData as any).accreditations || [],
+      insurance_accepted: (formData as any).insurance_accepted || [],
+      legal_profile: (formData as any).legal_profile || {},
+      medical_profile: (formData as any).medical_profile || {},
     };
 
     let error;
     if (profileId) {
-      // Update existing profile
       const result = await supabase
         .from('client_profile')
         .update(profilePayload)
         .eq('id', profileId);
       error = result.error;
     } else {
-      // Insert new profile
       const result = await supabase
         .from('client_profile')
         .insert(profilePayload)
@@ -208,18 +294,26 @@ export default function ProfilePage() {
     }
 
     setSaving(false);
-    
+
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      // If the external database is missing columns, keep the user's work in the draft.
+      if (isMissingColumnError(error.message)) {
+        toast({
+          title: 'Saved locally',
+          description: 'Your database is missing some profile fields, so we saved your changes in this browser for now.',
+        });
+      } else {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      }
       return;
     }
-    
+
     // Mark current step as completed
     if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
-      setCompletedSteps(prev => [...prev, currentStep]);
+      setCompletedSteps((prev) => [...prev, currentStep]);
     }
-    
-    toast({ title: 'Section saved', description: 'Your changes have been saved to the database.' });
+
+    toast({ title: 'Section saved', description: 'Your changes have been saved.' });
   };
 
   const handleSubmit = async () => {
@@ -232,22 +326,31 @@ export default function ProfilePage() {
     }
 
     setSubmitting(true);
-    
-    const profilePayload = {
+
+    // Keep a local draft even when submitting.
+    saveProfileDraft(user.id, formData);
+
+    const profilePayload: any = {
       owner_user_id: user.id,
       entity_name: formData.entity_name,
+      legal_name: (formData as any).legal_name || null,
+      vertical: (formData as any).vertical || 'general',
+
       main_website_url: formData.main_website_url || null,
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
       hours: formData.hours || null,
       founding_year: formData.founding_year || null,
       team_size: formData.team_size || null,
+
       address_street: formData.address_street || null,
       address_city: formData.address_city || null,
       address_state: formData.address_state || null,
       address_postal_code: formData.address_postal_code || null,
+
       phone: formData.phone || null,
       email: formData.email || null,
+
       same_as: formData.same_as || [],
       services: formData.services || [],
       products: formData.products || [],
@@ -259,6 +362,12 @@ export default function ProfilePage() {
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
+
+      certifications: (formData as any).certifications || [],
+      accreditations: (formData as any).accreditations || [],
+      insurance_accepted: (formData as any).insurance_accepted || [],
+      legal_profile: (formData as any).legal_profile || {},
+      medical_profile: (formData as any).medical_profile || {},
     };
 
     let error;
@@ -282,7 +391,14 @@ export default function ProfilePage() {
 
     if (error) {
       setSubmitting(false);
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      if (isMissingColumnError(error.message)) {
+        toast({
+          title: 'Saved locally',
+          description: 'Your database is missing some profile fields, so we saved your submission as a local draft. Please contact your admin to update the database schema, then submit again.',
+        });
+      } else {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      }
       return;
     }
 
