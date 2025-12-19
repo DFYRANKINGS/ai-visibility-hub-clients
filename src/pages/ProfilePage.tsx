@@ -20,6 +20,7 @@ import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X } from 'lucide-react';
+import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
@@ -236,6 +237,7 @@ export default function ProfilePage() {
     const profilePayload: any = {
       ...(profileId ? { id: profileId } : {}),
       owner_user_id: user.id,
+      agency_user_id: DEFAULT_AGENCY_USER_ID,
       entity_name: formData.entity_name || 'Untitled',
       legal_name: (formData as any).legal_name || null,
       vertical: (formData as any).vertical || 'general',
@@ -326,6 +328,7 @@ export default function ProfilePage() {
     const profilePayload: any = {
       ...(profileId ? { id: profileId } : {}),
       owner_user_id: user.id,
+      agency_user_id: DEFAULT_AGENCY_USER_ID,
       entity_name: formData.entity_name,
       legal_name: (formData as any).legal_name || null,
       vertical: (formData as any).vertical || 'general',

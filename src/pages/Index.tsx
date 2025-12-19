@@ -19,6 +19,7 @@ import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Send, Sparkles, LogOut, Loader2 } from 'lucide-react';
+import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
 
 const steps: FormStep[] = ['entity', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
@@ -93,6 +94,7 @@ export default function Index() {
     const profilePayload: any = {
       ...(existing?.id ? { id: existing.id } : {}),
       owner_user_id: user.id,
+      agency_user_id: DEFAULT_AGENCY_USER_ID,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
