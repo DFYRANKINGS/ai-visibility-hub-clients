@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep } from '@/types/profile';
+import { ClientProfile, FormStep, LegalProfile } from '@/types/profile';
 import { FormProgress } from '@/components/FormProgress';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
+import { LegalPracticeAreasStep } from '@/components/steps/LegalPracticeAreasStep';
 import { ProductsStep } from '@/components/steps/ProductsStep';
 import { FAQsStep } from '@/components/steps/FAQsStep';
 import { ArticlesStep } from '@/components/steps/ArticlesStep';
@@ -34,6 +35,7 @@ export default function Index() {
   const [formData, setFormData] = useState<Partial<ClientProfile>>({
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
+    legal_profile: { practice_areas: [] },
   });
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export default function Index() {
 
     setSubmitting(false);
     toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved to the database.' });
-    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
+    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [], legal_profile: { practice_areas: [] } });
     setCurrentStep('entity');
     setCompletedSteps([]);
   };
@@ -187,7 +189,16 @@ export default function Index() {
 
         <div className="mt-8">
           {currentStep === 'entity' && <EntityStep data={formData} onChange={setFormData} errors={errors} />}
-          {currentStep === 'services' && <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />}
+          {currentStep === 'services' && (
+            formData.vertical === 'legal' ? (
+              <LegalPracticeAreasStep 
+                legalProfile={formData.legal_profile || { practice_areas: [] }} 
+                onChange={(lp: LegalProfile) => setFormData({ ...formData, legal_profile: lp })} 
+              />
+            ) : (
+              <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />
+            )
+          )}
           {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => setFormData({ ...formData, products: p })} />}
           {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => setFormData({ ...formData, faqs: f })} />}
           {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => setFormData({ ...formData, articles: a })} />}

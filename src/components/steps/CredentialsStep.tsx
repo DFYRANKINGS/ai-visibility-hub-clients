@@ -35,8 +35,8 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const medicalProfile = data.medical_profile || {};
 
   // Keep free-typing UX for comma-separated fields; parse only on blur.
+  // Note: practice_areas is now managed in LegalPracticeAreasStep as PracticeArea[]
   const [barNumbersText, setBarNumbersText] = useState(legalProfile.bar_numbers?.join(', ') || '');
-  const [practiceAreasText, setPracticeAreasText] = useState(legalProfile.practice_areas?.join(', ') || '');
   const [jurisdictionsText, setJurisdictionsText] = useState(legalProfile.jurisdictions?.join(', ') || '');
   const [courtAdmissionsText, setCourtAdmissionsText] = useState(legalProfile.court_admissions?.join(', ') || '');
   const [specialtiesText, setSpecialtiesText] = useState(medicalProfile.specialties?.join(', ') || '');
@@ -46,10 +46,9 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   // Sync local text state when data changes from parent
   useEffect(() => {
     setBarNumbersText(legalProfile.bar_numbers?.join(', ') || '');
-    setPracticeAreasText(legalProfile.practice_areas?.join(', ') || '');
     setJurisdictionsText(legalProfile.jurisdictions?.join(', ') || '');
     setCourtAdmissionsText(legalProfile.court_admissions?.join(', ') || '');
-  }, [legalProfile.bar_numbers, legalProfile.practice_areas, legalProfile.jurisdictions, legalProfile.court_admissions]);
+  }, [legalProfile.bar_numbers, legalProfile.jurisdictions, legalProfile.court_admissions]);
 
   useEffect(() => {
     setSpecialtiesText(medicalProfile.specialties?.join(', ') || '');
@@ -237,14 +236,7 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                 onBlur={() => updateLegalProfile({ ...legalProfile, bar_numbers: parseCommaList(barNumbersText) })}
               />
             </FormField>
-            <FormField label="Practice Areas" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., Personal Injury, Family Law"
-                value={practiceAreasText}
-                onChange={(e) => setPracticeAreasText(e.target.value)}
-                onBlur={() => updateLegalProfile({ ...legalProfile, practice_areas: parseCommaList(practiceAreasText) })}
-              />
-            </FormField>
+            {/* Practice Areas is now managed in LegalPracticeAreasStep */}
             <FormField label="Jurisdictions" hint="Comma-separated list">
               <Input
                 placeholder="e.g., New York, California"
