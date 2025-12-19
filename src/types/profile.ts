@@ -118,9 +118,20 @@ export interface InsuranceAccepted {
   plan_types?: string;
 }
 
+// Legal Practice Area for vertical === 'legal'
+export interface PracticeArea {
+  practice_area_id: string;
+  name: string;
+  case_types: string;
+  jurisdiction: string;
+  service_areas: string;
+  description: string;
+  featured: boolean;
+}
+
 export interface LegalProfile {
   bar_numbers?: string[];
-  practice_areas?: string[];
+  practice_areas?: PracticeArea[];
   jurisdictions?: string[];
   court_admissions?: string[];
 }
