@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,17 +15,6 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
-  // Get agency_id from URL (direct link from agency)
-  const agencyIdFromUrl = searchParams.get('agency_id');
-  
-  // Store agency_id in localStorage when present in URL
-  useEffect(() => {
-    if (agencyIdFromUrl) {
-      localStorage.setItem('agency_user_id', agencyIdFromUrl);
-    }
-  }, [agencyIdFromUrl]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
