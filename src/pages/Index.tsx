@@ -67,20 +67,7 @@ export default function Index() {
 
   const handleSubmit = async () => {
     if (!user) return;
-    
-    // Get the agency ID from localStorage (set during URL access)
-    const agencyUserId = localStorage.getItem('agency_user_id');
-    
-    // Validate it's a proper UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    
-    if (!agencyUserId || !uuidRegex.test(agencyUserId)) {
-      localStorage.removeItem('agency_user_id');
-      toast({ title: 'Error', description: 'Invalid session. Please use your agency link again.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
-    
+
     if (!formData.entity_name?.trim()) {
       toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
       setCurrentStep('entity');
@@ -88,10 +75,24 @@ export default function Index() {
     }
 
     setSubmitting(true);
-    
-    // Insert into business_entities table with agency_user_id
-    const profilePayload = {
-      agency_user_id: agencyUserId,
+
+    // Ensure we upsert against the user's existing profile row (if any)
+    const { data: existing, error: lookupError } = await supabase
+      .from('client_profile')
+      .select('id')
+      .eq('owner_user_id', user.id)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.log('client_profile lookup error', { message: lookupError.message, code: lookupError.code });
+      setSubmitting(false);
+      toast({ title: 'Error', description: lookupError.message, variant: 'destructive' });
+      return;
+    }
+
+    const profilePayload: any = {
+      ...(existing?.id ? { id: existing.id } : {}),
+      owner_user_id: user.id,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
@@ -119,30 +120,37 @@ export default function Index() {
       case_studies: formData.case_studies || [],
     };
 
-    // Save to business_entities table
-    const { error } = await supabase.from('business_entities').insert(profilePayload as any);
+    const { data: saved, error: upsertError } = await supabase
+      .from('client_profile')
+      .upsert(profilePayload)
+      .select('id')
+      .single();
 
-    if (error) {
+    console.log('client_profile upsert result', {
+      ok: !upsertError,
+      id: saved?.id,
+      message: upsertError?.message,
+      code: (upsertError as any)?.code,
+    });
+
+    if (upsertError) {
       setSubmitting(false);
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: 'Not saved to database', description: upsertError.message, variant: 'destructive' });
       return;
     }
 
-    // Send email notification via SendPulse
+    // Send email notification (non-blocking)
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
-        body: profilePayload,
+        body: { ...profilePayload, user_email: user.email },
       });
-      
-      if (emailError) {
-        console.error('Email notification failed:', emailError);
-      }
+      if (emailError) console.log('Email notification failed', { message: emailError.message });
     } catch (emailErr) {
-      console.error('Email notification error:', emailErr);
+      console.log('Email notification error', emailErr);
     }
 
     setSubmitting(false);
-    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved.' });
+    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved to the database.' });
     setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [] });
     setCurrentStep('entity');
     setCompletedSteps([]);

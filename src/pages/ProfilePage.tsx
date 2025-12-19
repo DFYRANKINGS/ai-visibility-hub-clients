@@ -227,13 +227,14 @@ export default function ProfilePage() {
   const handleSaveSection = async () => {
     if (!user) return;
     if (currentStep === 'entity' && !validateEntity()) return;
-    
+
     setSaving(true);
 
     // Always save a draft in this browser so sign-out/in doesn't lose work.
     saveProfileDraft(user.id, formData);
 
     const profilePayload: any = {
+      ...(profileId ? { id: profileId } : {}),
       owner_user_id: user.id,
       entity_name: formData.entity_name || 'Untitled',
       legal_name: (formData as any).legal_name || null,
@@ -274,51 +275,43 @@ export default function ProfilePage() {
       medical_profile: (formData as any).medical_profile || {},
     };
 
-    let error;
-    if (profileId) {
-      const result = await supabase
-        .from('client_profile')
-        .update(profilePayload)
-        .eq('id', profileId);
-      error = result.error;
-    } else {
-      const result = await supabase
-        .from('client_profile')
-        .insert(profilePayload)
-        .select('id')
-        .single();
-      error = result.error;
-      if (result.data) {
-        setProfileId(result.data.id);
-      }
-    }
+    const { data: saved, error } = await supabase
+      .from('client_profile')
+      .upsert(profilePayload)
+      .select('id')
+      .single();
+
+    console.log('client_profile saveSection result', {
+      ok: !error,
+      id: saved?.id,
+      message: error?.message,
+      code: (error as any)?.code,
+    });
 
     setSaving(false);
 
     if (error) {
-      // If the external database is missing columns, keep the user's work in the draft.
-      if (isMissingColumnError(error.message)) {
-        toast({
-          title: 'Saved locally',
-          description: 'Your database is missing some profile fields, so we saved your changes in this browser for now.',
-        });
-      } else {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      }
+      toast({
+        title: 'Not saved to database',
+        description: `${error.message} (Your draft is saved locally in this browser.)`,
+        variant: 'destructive',
+      });
       return;
     }
+
+    if (saved?.id && !profileId) setProfileId(saved.id);
 
     // Mark current step as completed
     if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
       setCompletedSteps((prev) => [...prev, currentStep]);
     }
 
-    toast({ title: 'Section saved', description: 'Your changes have been saved.' });
+    toast({ title: 'Section saved', description: 'Saved to the database.' });
   };
 
   const handleSubmit = async () => {
     if (!user) return;
-    
+
     if (!formData.entity_name?.trim()) {
       toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
       setCurrentStep('entity');
@@ -331,6 +324,7 @@ export default function ProfilePage() {
     saveProfileDraft(user.id, formData);
 
     const profilePayload: any = {
+      ...(profileId ? { id: profileId } : {}),
       owner_user_id: user.id,
       entity_name: formData.entity_name,
       legal_name: (formData as any).legal_name || null,
@@ -370,45 +364,38 @@ export default function ProfilePage() {
       medical_profile: (formData as any).medical_profile || {},
     };
 
-    let error;
-    if (profileId) {
-      const result = await supabase
-        .from('client_profile')
-        .update(profilePayload)
-        .eq('id', profileId);
-      error = result.error;
-    } else {
-      const result = await supabase
-        .from('client_profile')
-        .insert(profilePayload)
-        .select('id')
-        .single();
-      error = result.error;
-      if (result.data) {
-        setProfileId(result.data.id);
-      }
-    }
+    const { data: saved, error } = await supabase
+      .from('client_profile')
+      .upsert(profilePayload)
+      .select('id')
+      .single();
+
+    console.log('client_profile submit result', {
+      ok: !error,
+      id: saved?.id,
+      message: error?.message,
+      code: (error as any)?.code,
+    });
 
     if (error) {
       setSubmitting(false);
-      if (isMissingColumnError(error.message)) {
-        toast({
-          title: 'Saved locally',
-          description: 'Your database is missing some profile fields, so we saved your submission as a local draft. Please contact your admin to update the database schema, then submit again.',
-        });
-      } else {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      }
+      toast({
+        title: 'Not submitted',
+        description: `${error.message} (Your draft is saved locally in this browser.)`,
+        variant: 'destructive',
+      });
       return;
     }
+
+    if (saved?.id && !profileId) setProfileId(saved.id);
 
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
         body: { ...profilePayload, user_email: user.email },
       });
-      if (emailError) console.error('Email notification failed:', emailError);
+      if (emailError) console.log('Email notification failed', { message: emailError.message });
     } catch (emailErr) {
-      console.error('Email notification error:', emailErr);
+      console.log('Email notification error', emailErr);
     }
 
     setSubmitting(false);
