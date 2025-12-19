@@ -1,4 +1,4 @@
-import { FormStep } from '@/types/profile';
+import { FormStep, BusinessVertical } from '@/types/profile';
 import { cn } from '@/lib/utils';
 import { 
   Check, 
@@ -14,19 +14,26 @@ import {
   Newspaper, 
   FolderKanban,
   ClipboardCheck,
-  BadgeCheck
+  BadgeCheck,
+  Scale
 } from 'lucide-react';
 
 interface ProfileSidebarProps {
   currentStep: FormStep;
   completedSteps: FormStep[];
   onStepClick: (step: FormStep) => void;
+  vertical?: BusinessVertical;
 }
 
-const steps: { id: FormStep; label: string; description: string; icon: React.ElementType }[] = [
+const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; description: string; icon: React.ElementType }[] => [
   { id: 'entity', label: 'Organization', description: 'Basic business information', icon: Building2 },
   { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
-  { id: 'services', label: 'Services', description: 'What you offer', icon: Briefcase },
+  { 
+    id: 'services', 
+    label: vertical === 'legal' ? 'Practice Areas' : 'Services', 
+    description: vertical === 'legal' ? 'Legal practice areas' : 'What you offer', 
+    icon: vertical === 'legal' ? Scale : Briefcase 
+  },
   { id: 'products', label: 'Products', description: 'Items for sale', icon: Package },
   { id: 'faqs', label: 'FAQs', description: 'Common questions', icon: HelpCircle },
   { id: 'articles', label: 'Articles', description: 'Blog posts & content', icon: FileText },
@@ -39,7 +46,9 @@ const steps: { id: FormStep; label: string; description: string; icon: React.Ele
   { id: 'review', label: 'Review & Submit', description: 'Final review', icon: ClipboardCheck },
 ];
 
-export function ProfileSidebar({ currentStep, completedSteps, onStepClick }: ProfileSidebarProps) {
+export function ProfileSidebar({ currentStep, completedSteps, onStepClick, vertical }: ProfileSidebarProps) {
+  const steps = getSteps(vertical);
+  
   return (
     <aside className="w-72 shrink-0 border-r border-border bg-card/50 overflow-y-auto">
       <nav className="p-4 space-y-1">
