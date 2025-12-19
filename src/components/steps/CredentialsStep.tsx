@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClientProfile, Certification, Accreditation, InsuranceAccepted, LegalProfile, MedicalProfile } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
@@ -16,6 +16,12 @@ const emptyCertification: Certification = { name: '', issuing_body: '' };
 const emptyAccreditation: Accreditation = { name: '', accrediting_body: '' };
 const emptyInsurance: InsuranceAccepted = { name: '' };
 
+const parseCommaList = (raw: string) =>
+  raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
 export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const [expandedCert, setExpandedCert] = useState<number | null>(0);
   const [expandedAccred, setExpandedAccred] = useState<number | null>(null);
@@ -27,6 +33,13 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const vertical = data.vertical || 'general';
   const legalProfile = data.legal_profile || {};
   const medicalProfile = data.medical_profile || {};
+
+  // Keep free-typing UX for comma-separated fields; parse on blur.
+  const practiceAreasFromData = legalProfile.practice_areas?.join(', ') || '';
+  const [practiceAreasText, setPracticeAreasText] = useState(practiceAreasFromData);
+  useEffect(() => {
+    setPracticeAreasText(practiceAreasFromData);
+  }, [practiceAreasFromData]);
 
   const updateCertifications = (certs: Certification[]) => onChange({ ...data, certifications: certs });
   const updateAccreditations = (accreds: Accreditation[]) => onChange({ ...data, accreditations: accreds });
@@ -210,8 +223,14 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
             <FormField label="Practice Areas" hint="Comma-separated list">
               <Input
                 placeholder="e.g., Personal Injury, Family Law"
-                value={legalProfile.practice_areas?.join(', ') || ''}
-                onChange={(e) => updateLegalProfile({ ...legalProfile, practice_areas: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={practiceAreasText}
+                onChange={(e) => setPracticeAreasText(e.target.value)}
+                onBlur={() =>
+                  updateLegalProfile({
+                    ...legalProfile,
+                    practice_areas: parseCommaList(practiceAreasText),
+                  })
+                }
               />
             </FormField>
             <FormField label="Jurisdictions" hint="Comma-separated list">
