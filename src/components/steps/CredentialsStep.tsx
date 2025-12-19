@@ -34,12 +34,28 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const legalProfile = data.legal_profile || {};
   const medicalProfile = data.medical_profile || {};
 
-  // Keep free-typing UX for comma-separated fields; parse on blur.
-  const practiceAreasFromData = legalProfile.practice_areas?.join(', ') || '';
-  const [practiceAreasText, setPracticeAreasText] = useState(practiceAreasFromData);
+  // Keep free-typing UX for comma-separated fields; parse only on blur.
+  const [barNumbersText, setBarNumbersText] = useState(legalProfile.bar_numbers?.join(', ') || '');
+  const [practiceAreasText, setPracticeAreasText] = useState(legalProfile.practice_areas?.join(', ') || '');
+  const [jurisdictionsText, setJurisdictionsText] = useState(legalProfile.jurisdictions?.join(', ') || '');
+  const [courtAdmissionsText, setCourtAdmissionsText] = useState(legalProfile.court_admissions?.join(', ') || '');
+  const [specialtiesText, setSpecialtiesText] = useState(medicalProfile.specialties?.join(', ') || '');
+  const [hospitalAffiliationsText, setHospitalAffiliationsText] = useState(medicalProfile.hospital_affiliations?.join(', ') || '');
+  const [boardCertificationsText, setBoardCertificationsText] = useState(medicalProfile.board_certifications?.join(', ') || '');
+
+  // Sync local text state when data changes from parent
   useEffect(() => {
-    setPracticeAreasText(practiceAreasFromData);
-  }, [practiceAreasFromData]);
+    setBarNumbersText(legalProfile.bar_numbers?.join(', ') || '');
+    setPracticeAreasText(legalProfile.practice_areas?.join(', ') || '');
+    setJurisdictionsText(legalProfile.jurisdictions?.join(', ') || '');
+    setCourtAdmissionsText(legalProfile.court_admissions?.join(', ') || '');
+  }, [legalProfile.bar_numbers, legalProfile.practice_areas, legalProfile.jurisdictions, legalProfile.court_admissions]);
+
+  useEffect(() => {
+    setSpecialtiesText(medicalProfile.specialties?.join(', ') || '');
+    setHospitalAffiliationsText(medicalProfile.hospital_affiliations?.join(', ') || '');
+    setBoardCertificationsText(medicalProfile.board_certifications?.join(', ') || '');
+  }, [medicalProfile.specialties, medicalProfile.hospital_affiliations, medicalProfile.board_certifications]);
 
   const updateCertifications = (certs: Certification[]) => onChange({ ...data, certifications: certs });
   const updateAccreditations = (accreds: Accreditation[]) => onChange({ ...data, accreditations: accreds });
@@ -216,8 +232,9 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
             <FormField label="Bar Numbers" hint="Comma-separated list">
               <Input
                 placeholder="e.g., NY12345, CA67890"
-                value={legalProfile.bar_numbers?.join(', ') || ''}
-                onChange={(e) => updateLegalProfile({ ...legalProfile, bar_numbers: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={barNumbersText}
+                onChange={(e) => setBarNumbersText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, bar_numbers: parseCommaList(barNumbersText) })}
               />
             </FormField>
             <FormField label="Practice Areas" hint="Comma-separated list">
@@ -225,26 +242,23 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                 placeholder="e.g., Personal Injury, Family Law"
                 value={practiceAreasText}
                 onChange={(e) => setPracticeAreasText(e.target.value)}
-                onBlur={() =>
-                  updateLegalProfile({
-                    ...legalProfile,
-                    practice_areas: parseCommaList(practiceAreasText),
-                  })
-                }
+                onBlur={() => updateLegalProfile({ ...legalProfile, practice_areas: parseCommaList(practiceAreasText) })}
               />
             </FormField>
             <FormField label="Jurisdictions" hint="Comma-separated list">
               <Input
                 placeholder="e.g., New York, California"
-                value={legalProfile.jurisdictions?.join(', ') || ''}
-                onChange={(e) => updateLegalProfile({ ...legalProfile, jurisdictions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={jurisdictionsText}
+                onChange={(e) => setJurisdictionsText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, jurisdictions: parseCommaList(jurisdictionsText) })}
               />
             </FormField>
             <FormField label="Court Admissions" hint="Comma-separated list">
               <Input
                 placeholder="e.g., U.S. Supreme Court, NY State Courts"
-                value={legalProfile.court_admissions?.join(', ') || ''}
-                onChange={(e) => updateLegalProfile({ ...legalProfile, court_admissions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={courtAdmissionsText}
+                onChange={(e) => setCourtAdmissionsText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, court_admissions: parseCommaList(courtAdmissionsText) })}
               />
             </FormField>
           </div>
@@ -278,22 +292,25 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
             <FormField label="Specialties" hint="Comma-separated list">
               <Input
                 placeholder="e.g., Cardiology, Internal Medicine"
-                value={medicalProfile.specialties?.join(', ') || ''}
-                onChange={(e) => updateMedicalProfile({ ...medicalProfile, specialties: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={specialtiesText}
+                onChange={(e) => setSpecialtiesText(e.target.value)}
+                onBlur={() => updateMedicalProfile({ ...medicalProfile, specialties: parseCommaList(specialtiesText) })}
               />
             </FormField>
             <FormField label="Hospital Affiliations" hint="Comma-separated list">
               <Input
                 placeholder="e.g., Mayo Clinic, Cleveland Clinic"
-                value={medicalProfile.hospital_affiliations?.join(', ') || ''}
-                onChange={(e) => updateMedicalProfile({ ...medicalProfile, hospital_affiliations: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={hospitalAffiliationsText}
+                onChange={(e) => setHospitalAffiliationsText(e.target.value)}
+                onBlur={() => updateMedicalProfile({ ...medicalProfile, hospital_affiliations: parseCommaList(hospitalAffiliationsText) })}
               />
             </FormField>
             <FormField label="Board Certifications" hint="Comma-separated list">
               <Input
                 placeholder="e.g., American Board of Internal Medicine"
-                value={medicalProfile.board_certifications?.join(', ') || ''}
-                onChange={(e) => updateMedicalProfile({ ...medicalProfile, board_certifications: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                value={boardCertificationsText}
+                onChange={(e) => setBoardCertificationsText(e.target.value)}
+                onBlur={() => updateMedicalProfile({ ...medicalProfile, board_certifications: parseCommaList(boardCertificationsText) })}
               />
             </FormField>
           </div>
