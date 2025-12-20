@@ -20,7 +20,8 @@ import { CasesStep } from '@/components/steps/CasesStep';
 import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Send, Sparkles, LogOut, Loader2, Save, Menu, X } from 'lucide-react';
+import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
@@ -55,6 +56,106 @@ const saveProfileDraft = (userId: string, data: Partial<ClientProfile>) => {
 const isMissingColumnError = (message?: string) => {
   const m = (message || '').toLowerCase();
   return m.includes('column') && (m.includes('does not exist') || m.includes('schema cache'));
+};
+
+const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
+  const entityName = data.entity_name?.trim() || 'Profile';
+  const fileName = `${entityName} Master Profile.xlsx`;
+
+  const workbook = XLSX.utils.book_new();
+
+  // Organization Info sheet
+  const orgData = [
+    ['Entity Name', data.entity_name || ''],
+    ['Legal Name', data.legal_name || ''],
+    ['Business Vertical', data.vertical || ''],
+    ['Main Website URL', data.main_website_url || ''],
+    ['Short Description', data.short_description || ''],
+    ['Long Description', data.long_description || ''],
+    ['Hours', data.hours || ''],
+    ['Founding Year', data.founding_year || ''],
+    ['Team Size', data.team_size || ''],
+    ['Phone', data.phone || ''],
+    ['Email', data.email || ''],
+    ['Address Street', data.address_street || ''],
+    ['Address City', data.address_city || ''],
+    ['Address State', data.address_state || ''],
+    ['Address Postal Code', data.address_postal_code || ''],
+  ];
+  const orgSheet = XLSX.utils.aoa_to_sheet(orgData);
+  XLSX.utils.book_append_sheet(workbook, orgSheet, 'Organization');
+
+  // Helper to create sheet from array data
+  const addArraySheet = (sheetName: string, headers: string[], items: any[], mapper: (item: any) => any[]) => {
+    if (items && items.length > 0) {
+      const sheetData = [headers, ...items.map(mapper)];
+      const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+    }
+  };
+
+  // Services
+  addArraySheet('Services', ['Name', 'Description', 'Price'], data.services || [], 
+    (s) => [s.name || '', s.description || '', s.price || '']);
+
+  // Products
+  addArraySheet('Products', ['Name', 'Description', 'Price', 'URL'], data.products || [],
+    (p) => [p.name || '', p.description || '', p.price || '', p.url || '']);
+
+  // FAQs
+  addArraySheet('FAQs', ['Question', 'Answer'], data.faqs || [],
+    (f) => [f.question || '', f.answer || '']);
+
+  // Articles
+  addArraySheet('Articles', ['Title', 'URL', 'Date Published', 'Description'], data.articles || [],
+    (a) => [a.title || '', a.url || '', a.date_published || '', a.description || '']);
+
+  // Reviews
+  addArraySheet('Reviews', ['Author', 'Rating', 'Review Text', 'Date', 'Source'], data.reviews || [],
+    (r) => [r.author || '', r.rating || '', r.review_text || '', r.date || '', r.source || '']);
+
+  // Locations
+  addArraySheet('Locations', ['Name', 'Street', 'City', 'State', 'Postal Code', 'Phone'], data.locations || [],
+    (l) => [l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '']);
+
+  // Team Members
+  addArraySheet('Team Members', ['Name', 'Title', 'Bio', 'Email', 'Phone'], data.team_members || [],
+    (t) => [t.name || '', t.title || '', t.bio || '', t.email || '', t.phone || '']);
+
+  // Awards
+  addArraySheet('Awards', ['Name', 'Year', 'Issuer', 'Description'], data.awards || [],
+    (a) => [a.name || '', a.year || '', a.issuer || '', a.description || '']);
+
+  // Media Mentions
+  addArraySheet('Media Mentions', ['Title', 'Publication', 'URL', 'Date'], data.media_mentions || [],
+    (m) => [m.title || '', m.publication || '', m.url || '', m.date || '']);
+
+  // Case Studies
+  addArraySheet('Case Studies', ['Title', 'Description', 'Outcome', 'URL'], data.case_studies || [],
+    (c) => [c.title || '', c.description || '', c.outcome || '', c.url || '']);
+
+  // Certifications
+  addArraySheet('Certifications', ['Name', 'Issuer', 'Year', 'URL'], data.certifications || [],
+    (c) => [c.name || '', c.issuer || '', c.year || '', c.url || '']);
+
+  // Accreditations
+  addArraySheet('Accreditations', ['Name', 'Issuer', 'Year', 'URL'], data.accreditations || [],
+    (a) => [a.name || '', a.issuer || '', a.year || '', a.url || '']);
+
+  // Legal Profile (Practice Areas)
+  if (data.legal_profile?.practice_areas && data.legal_profile.practice_areas.length > 0) {
+    addArraySheet('Practice Areas', ['Name', 'Description'], data.legal_profile.practice_areas,
+      (p) => [p.name || '', p.description || '']);
+  }
+
+  // Same As (Social Links)
+  if (data.same_as && data.same_as.length > 0) {
+    const sameAsData = [['Social Links'], ...data.same_as.map((url) => [url])];
+    const sameAsSheet = XLSX.utils.aoa_to_sheet(sameAsData);
+    XLSX.utils.book_append_sheet(workbook, sameAsSheet, 'Social Links');
+  }
+
+  XLSX.writeFile(workbook, fileName);
 };
 
 export default function ProfilePage() {
@@ -527,9 +628,14 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">
                     Review your profile and submit when ready
                   </p>
-                  <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
-                    {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" />Submit Profile</>}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" size="lg" onClick={() => downloadProfileAsXlsx(formData)}>
+                      <Download className="w-4 h-4 mr-2" />Download XLSX
+                    </Button>
+                    <Button variant="hero" size="lg" onClick={handleSubmit} disabled={submitting}>
+                      {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Send className="w-4 h-4 mr-2" />Submit Profile</>}
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
