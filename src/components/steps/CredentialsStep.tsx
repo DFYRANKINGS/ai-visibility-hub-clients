@@ -39,7 +39,7 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const [barNumbersText, setBarNumbersText] = useState(legalProfile.bar_numbers?.join(', ') || '');
   const [jurisdictionsText, setJurisdictionsText] = useState(legalProfile.jurisdictions?.join(', ') || '');
   const [courtAdmissionsText, setCourtAdmissionsText] = useState(legalProfile.court_admissions?.join(', ') || '');
-  const [specialtiesText, setSpecialtiesText] = useState(medicalProfile.specialties?.join(', ') || '');
+  // Note: specialties is now managed in MedicalSpecialtiesStep as MedicalSpecialty[]
   const [hospitalAffiliationsText, setHospitalAffiliationsText] = useState(medicalProfile.hospital_affiliations?.join(', ') || '');
   const [boardCertificationsText, setBoardCertificationsText] = useState(medicalProfile.board_certifications?.join(', ') || '');
 
@@ -51,10 +51,9 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   }, [legalProfile.bar_numbers, legalProfile.jurisdictions, legalProfile.court_admissions]);
 
   useEffect(() => {
-    setSpecialtiesText(medicalProfile.specialties?.join(', ') || '');
     setHospitalAffiliationsText(medicalProfile.hospital_affiliations?.join(', ') || '');
     setBoardCertificationsText(medicalProfile.board_certifications?.join(', ') || '');
-  }, [medicalProfile.specialties, medicalProfile.hospital_affiliations, medicalProfile.board_certifications]);
+  }, [medicalProfile.hospital_affiliations, medicalProfile.board_certifications]);
 
   const updateCertifications = (certs: Certification[]) => onChange({ ...data, certifications: certs });
   const updateAccreditations = (accreds: Accreditation[]) => onChange({ ...data, accreditations: accreds });
@@ -281,14 +280,7 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                 />
               </FormField>
             </div>
-            <FormField label="Specialties" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., Cardiology, Internal Medicine"
-                value={specialtiesText}
-                onChange={(e) => setSpecialtiesText(e.target.value)}
-                onBlur={() => updateMedicalProfile({ ...medicalProfile, specialties: parseCommaList(specialtiesText) })}
-              />
-            </FormField>
+            {/* Note: Specialties is now managed in MedicalSpecialtiesStep */}
             <FormField label="Hospital Affiliations" hint="Comma-separated list">
               <Input
                 placeholder="e.g., Mayo Clinic, Cleveland Clinic"

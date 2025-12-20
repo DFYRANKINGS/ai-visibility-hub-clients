@@ -15,7 +15,8 @@ import {
   FolderKanban,
   ClipboardCheck,
   BadgeCheck,
-  Scale
+  Scale,
+  Stethoscope
 } from 'lucide-react';
 
 interface ProfileSidebarProps {
@@ -30,9 +31,9 @@ const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; d
   { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
   { 
     id: 'services', 
-    label: vertical === 'legal' ? 'Practice Areas' : 'Services', 
-    description: vertical === 'legal' ? 'Legal practice areas' : 'What you offer', 
-    icon: vertical === 'legal' ? Scale : Briefcase 
+    label: vertical === 'legal' ? 'Practice Areas' : vertical === 'medical' ? 'Specialties' : 'Services', 
+    description: vertical === 'legal' ? 'Legal practice areas' : vertical === 'medical' ? 'Medical specialties' : 'What you offer', 
+    icon: vertical === 'legal' ? Scale : vertical === 'medical' ? Stethoscope : Briefcase 
   },
   { id: 'products', label: 'Products', description: 'Items for sale', icon: Package },
   { id: 'faqs', label: 'FAQs', description: 'Common questions', icon: HelpCircle },

@@ -136,12 +136,26 @@ export interface LegalProfile {
   court_admissions?: string[];
 }
 
+// Medical Specialty for vertical === 'medical'
+export interface MedicalSpecialty {
+  specialty_id: string;
+  name: string;
+  conditions_treated: string;
+  procedures_offered: string;
+  patient_population: string;
+  description: string;
+  featured: boolean;
+}
+
 export interface MedicalProfile {
   npi_number?: string;
   medical_license?: string;
-  specialties?: string[];
+  specialties?: MedicalSpecialty[];
   hospital_affiliations?: string[];
   board_certifications?: string[];
+  accepting_new_patients?: boolean;
+  telehealth_available?: boolean;
+  languages_spoken?: string[];
 }
 
 export type BusinessVertical = 'general' | 'legal' | 'medical';
