@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep, LegalProfile } from '@/types/profile';
+import { ClientProfile, FormStep, LegalProfile, MedicalProfile } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
 import { LegalPracticeAreasStep } from '@/components/steps/LegalPracticeAreasStep';
+import { MedicalSpecialtiesStep } from '@/components/steps/MedicalSpecialtiesStep';
 import { ProductsStep } from '@/components/steps/ProductsStep';
 import { FAQsStep } from '@/components/steps/FAQsStep';
 import { ArticlesStep } from '@/components/steps/ArticlesStep';
@@ -144,8 +145,14 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
 
   // Legal Profile (Practice Areas)
   if (data.legal_profile?.practice_areas && data.legal_profile.practice_areas.length > 0) {
-    addArraySheet('Practice Areas', ['Name', 'Description'], data.legal_profile.practice_areas,
-      (p) => [p.name || '', p.description || '']);
+    addArraySheet('Practice Areas', ['Name', 'Case Types', 'Jurisdiction', 'Service Areas', 'Description'], data.legal_profile.practice_areas,
+      (p) => [p.name || '', p.case_types || '', p.jurisdiction || '', p.service_areas || '', p.description || '']);
+  }
+
+  // Medical Profile (Specialties)
+  if (data.medical_profile?.specialties && data.medical_profile.specialties.length > 0) {
+    addArraySheet('Medical Specialties', ['Name', 'Conditions Treated', 'Procedures Offered', 'Patient Population', 'Description'], data.medical_profile.specialties,
+      (s) => [s.name || '', s.conditions_treated || '', s.procedures_offered || '', s.patient_population || '', s.description || '']);
   }
 
   // Same As (Social Links)
@@ -595,6 +602,11 @@ export default function ProfilePage() {
                   <LegalPracticeAreasStep 
                     legalProfile={formData.legal_profile || { practice_areas: [] }} 
                     onChange={(lp: LegalProfile) => setFormData({ ...formData, legal_profile: lp })} 
+                  />
+                ) : formData.vertical === 'medical' ? (
+                  <MedicalSpecialtiesStep 
+                    medicalProfile={formData.medical_profile || { specialties: [] }} 
+                    onChange={(mp: MedicalProfile) => setFormData({ ...formData, medical_profile: mp })} 
                   />
                 ) : (
                   <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />
