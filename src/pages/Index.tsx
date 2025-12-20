@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep, LegalProfile } from '@/types/profile';
+import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
 import { FormProgress } from '@/components/FormProgress';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
@@ -35,7 +35,8 @@ export default function Index() {
   const [formData, setFormData] = useState<Partial<ClientProfile>>({
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
-    legal_profile: { practice_areas: [] },
+    practice_areas: [],
+    medical_specialties: [],
   });
 
   useEffect(() => {
@@ -155,7 +156,7 @@ export default function Index() {
 
     setSubmitting(false);
     toast({ title: 'Success!', description: 'Your AI Visibility Profile has been saved to the database.' });
-    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [], legal_profile: { practice_areas: [] } });
+    setFormData({ services: [], products: [], faqs: [], articles: [], reviews: [], locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [], practice_areas: [], medical_specialties: [] });
     setCurrentStep('entity');
     setCompletedSteps([]);
   };
@@ -192,8 +193,8 @@ export default function Index() {
           {currentStep === 'services' && (
             formData.vertical === 'legal' ? (
               <LegalPracticeAreasStep 
-                legalProfile={formData.legal_profile || { practice_areas: [] }} 
-                onChange={(lp: LegalProfile) => setFormData({ ...formData, legal_profile: lp })} 
+                practiceAreas={formData.practice_areas || []} 
+                onChange={(pa: PracticeArea[]) => setFormData({ ...formData, practice_areas: pa })} 
               />
             ) : (
               <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />

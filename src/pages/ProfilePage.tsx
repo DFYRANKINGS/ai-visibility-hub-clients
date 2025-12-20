@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep, LegalProfile, MedicalProfile } from '@/types/profile';
+import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
@@ -143,15 +143,15 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
   addArraySheet('Accreditations', ['Name', 'Issuer', 'Year', 'URL'], data.accreditations || [],
     (a) => [a.name || '', a.issuer || '', a.year || '', a.url || '']);
 
-  // Legal Profile (Practice Areas)
-  if (data.legal_profile?.practice_areas && data.legal_profile.practice_areas.length > 0) {
-    addArraySheet('Practice Areas', ['Name', 'Case Types', 'Jurisdiction', 'Service Areas', 'Description'], data.legal_profile.practice_areas,
+  // Legal Practice Areas (top-level)
+  if (data.practice_areas && data.practice_areas.length > 0) {
+    addArraySheet('Practice Areas', ['Name', 'Case Types', 'Jurisdiction', 'Service Areas', 'Description'], data.practice_areas,
       (p) => [p.name || '', p.case_types || '', p.jurisdiction || '', p.service_areas || '', p.description || '']);
   }
 
-  // Medical Profile (Specialties)
-  if (data.medical_profile?.specialties && data.medical_profile.specialties.length > 0) {
-    addArraySheet('Medical Specialties', ['Name', 'Conditions Treated', 'Procedures Offered', 'Patient Population', 'Description'], data.medical_profile.specialties,
+  // Medical Specialties (top-level)
+  if (data.medical_specialties && data.medical_specialties.length > 0) {
+    addArraySheet('Medical Specialties', ['Name', 'Conditions Treated', 'Procedures Offered', 'Patient Population', 'Description'], data.medical_specialties,
       (s) => [s.name || '', s.conditions_treated || '', s.procedures_offered || '', s.patient_population || '', s.description || '']);
   }
 
@@ -181,6 +181,7 @@ export default function ProfilePage() {
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
     certifications: [], accreditations: [], insurance_accepted: [],
+    practice_areas: [], medical_specialties: [],
     vertical: 'general',
   });
 
@@ -257,6 +258,8 @@ export default function ProfilePage() {
           certifications: ((data as any).certifications as any[]) || [],
           accreditations: ((data as any).accreditations as any[]) || [],
           insurance_accepted: ((data as any).insurance_accepted as any[]) || [],
+          practice_areas: ((data as any).practice_areas as any[]) || [],
+          medical_specialties: ((data as any).medical_specialties as any[]) || [],
           legal_profile: ((data as any).legal_profile as any) || undefined,
           medical_profile: ((data as any).medical_profile as any) || undefined,
         };
@@ -270,7 +273,7 @@ export default function ProfilePage() {
         if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0 || ((fromDb.insurance_accepted as any[])?.length || 0) > 0) {
           stepsWithData.push('credentials');
         }
-        if ((data.services as any[])?.length > 0) stepsWithData.push('services');
+        if ((data.services as any[])?.length > 0 || ((data as any).practice_areas as any[])?.length > 0 || ((data as any).medical_specialties as any[])?.length > 0) stepsWithData.push('services');
         if ((data.products as any[])?.length > 0) stepsWithData.push('products');
         if ((data.faqs as any[])?.length > 0) stepsWithData.push('faqs');
         if ((data.articles as any[])?.length > 0) stepsWithData.push('articles');
@@ -382,6 +385,8 @@ export default function ProfilePage() {
       certifications: (formData as any).certifications || [],
       accreditations: (formData as any).accreditations || [],
       insurance_accepted: (formData as any).insurance_accepted || [],
+      practice_areas: (formData as any).practice_areas || [],
+      medical_specialties: (formData as any).medical_specialties || [],
       legal_profile: (formData as any).legal_profile || {},
       medical_profile: (formData as any).medical_profile || {},
     };
@@ -472,6 +477,8 @@ export default function ProfilePage() {
       certifications: (formData as any).certifications || [],
       accreditations: (formData as any).accreditations || [],
       insurance_accepted: (formData as any).insurance_accepted || [],
+      practice_areas: (formData as any).practice_areas || [],
+      medical_specialties: (formData as any).medical_specialties || [],
       legal_profile: (formData as any).legal_profile || {},
       medical_profile: (formData as any).medical_profile || {},
     };
@@ -600,13 +607,13 @@ export default function ProfilePage() {
               {currentStep === 'services' && (
                 formData.vertical === 'legal' ? (
                   <LegalPracticeAreasStep 
-                    legalProfile={formData.legal_profile || { practice_areas: [] }} 
-                    onChange={(lp: LegalProfile) => setFormData({ ...formData, legal_profile: lp })} 
+                    practiceAreas={formData.practice_areas || []} 
+                    onChange={(pa: PracticeArea[]) => setFormData({ ...formData, practice_areas: pa })} 
                   />
                 ) : formData.vertical === 'medical' ? (
                   <MedicalSpecialtiesStep 
-                    medicalProfile={formData.medical_profile || { specialties: [] }} 
-                    onChange={(mp: MedicalProfile) => setFormData({ ...formData, medical_profile: mp })} 
+                    medicalSpecialties={formData.medical_specialties || []} 
+                    onChange={(ms: MedicalSpecialty[]) => setFormData({ ...formData, medical_specialties: ms })} 
                   />
                 ) : (
                   <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MedicalSpecialty, MedicalProfile } from '@/types/profile';
+import { MedicalSpecialty } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,8 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils';
 
 interface MedicalSpecialtiesStepProps {
-  medicalProfile: MedicalProfile;
-  onChange: (medicalProfile: MedicalProfile) => void;
+  medicalSpecialties: MedicalSpecialty[];
+  onChange: (medicalSpecialties: MedicalSpecialty[]) => void;
 }
 
 const emptySpecialty: MedicalSpecialty = {
@@ -24,23 +24,21 @@ const emptySpecialty: MedicalSpecialty = {
   featured: false,
 };
 
-export function MedicalSpecialtiesStep({ medicalProfile, onChange }: MedicalSpecialtiesStepProps) {
-  const specialties = medicalProfile.specialties || [];
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(specialties.length > 0 ? 0 : null);
+export function MedicalSpecialtiesStep({ medicalSpecialties, onChange }: MedicalSpecialtiesStepProps) {
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(medicalSpecialties.length > 0 ? 0 : null);
 
   const addSpecialty = () => {
     const newSpecialty: MedicalSpecialty = { 
       ...emptySpecialty, 
       specialty_id: `ms-${Date.now()}` 
     };
-    const updated = [...specialties, newSpecialty];
-    onChange({ ...medicalProfile, specialties: updated });
-    setExpandedIndex(specialties.length);
+    onChange([...medicalSpecialties, newSpecialty]);
+    setExpandedIndex(medicalSpecialties.length);
   };
 
   const removeSpecialty = (index: number) => {
-    const updated = specialties.filter((_, i) => i !== index);
-    onChange({ ...medicalProfile, specialties: updated });
+    const updated = medicalSpecialties.filter((_, i) => i !== index);
+    onChange(updated);
     if (expandedIndex === index) {
       setExpandedIndex(null);
     } else if (expandedIndex !== null && expandedIndex > index) {
@@ -49,10 +47,10 @@ export function MedicalSpecialtiesStep({ medicalProfile, onChange }: MedicalSpec
   };
 
   const updateSpecialty = (index: number, field: keyof MedicalSpecialty, value: string | boolean) => {
-    const updated = specialties.map((sp, i) => 
+    const updated = medicalSpecialties.map((sp, i) => 
       i === index ? { ...sp, [field]: value } : sp
     );
-    onChange({ ...medicalProfile, specialties: updated });
+    onChange(updated);
   };
 
   return (
@@ -61,7 +59,7 @@ export function MedicalSpecialtiesStep({ medicalProfile, onChange }: MedicalSpec
       description="Define the medical specialties for your practice. These help AI understand your clinical expertise."
     >
       <div className="space-y-4">
-        {specialties.map((specialty, index) => (
+        {medicalSpecialties.map((specialty, index) => (
           <div 
             key={specialty.specialty_id || index} 
             className="border border-border rounded-xl overflow-hidden bg-background"

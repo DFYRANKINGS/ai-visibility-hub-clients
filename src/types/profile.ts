@@ -129,14 +129,14 @@ export interface PracticeArea {
   featured: boolean;
 }
 
+// Legal profile for credentials only (no practice_areas - stored at top level)
 export interface LegalProfile {
   bar_numbers?: string[];
-  practice_areas?: PracticeArea[];
   jurisdictions?: string[];
   court_admissions?: string[];
 }
 
-// Medical Specialty for vertical === 'medical'
+// Medical Specialty for vertical === 'medical' - stored at top level
 export interface MedicalSpecialty {
   specialty_id: string;
   name: string;
@@ -147,10 +147,10 @@ export interface MedicalSpecialty {
   featured: boolean;
 }
 
+// Medical profile for credentials only (no specialties - stored at top level)
 export interface MedicalProfile {
   npi_number?: string;
   medical_license?: string;
-  specialties?: MedicalSpecialty[];
   hospital_affiliations?: string[];
   board_certifications?: string[];
   accepting_new_patients?: boolean;
@@ -178,7 +178,7 @@ export interface ClientProfile {
   phone?: string;
   email?: string;
   same_as?: string[];
-  services?: Service[];
+  services?: Service[];  // business only
   products?: Product[];
   faqs?: FAQ[];
   articles?: Article[];
@@ -190,11 +190,17 @@ export interface ClientProfile {
   case_studies?: CaseStudy[];
   created_at?: string;
   updated_at?: string;
-  // New fields
+  // Core fields
   vertical?: BusinessVertical;
   certifications?: Certification[];
   accreditations?: Accreditation[];
   insurance_accepted?: InsuranceAccepted[];
+  // Top-level vertical-specific arrays (per canonical rules)
+  practice_areas?: PracticeArea[];  // legal only
+  medical_specialties?: MedicalSpecialty[];  // medical only
+  // Vertical-specific profiles (credentials only, no arrays)
+  legal_profile?: LegalProfile;
+  medical_profile?: MedicalProfile;
   // Entity Linking URLs
   gmb_url?: string;
   apple_maps_url?: string;
@@ -202,9 +208,6 @@ export interface ClientProfile {
   bbb_url?: string;
   tiktok_url?: string;
   pinterest_url?: string;
-  // Vertical-specific profiles
-  legal_profile?: LegalProfile;
-  medical_profile?: MedicalProfile;
 }
 
 export type FormStep = 
