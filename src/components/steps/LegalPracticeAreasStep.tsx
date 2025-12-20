@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PracticeArea, LegalProfile } from '@/types/profile';
+import { PracticeArea } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,8 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LegalPracticeAreasStepProps {
-  legalProfile: LegalProfile;
-  onChange: (legalProfile: LegalProfile) => void;
+  practiceAreas: PracticeArea[];
+  onChange: (practiceAreas: PracticeArea[]) => void;
 }
 
 const emptyPracticeArea: PracticeArea = {
@@ -24,8 +24,7 @@ const emptyPracticeArea: PracticeArea = {
   featured: false,
 };
 
-export function LegalPracticeAreasStep({ legalProfile, onChange }: LegalPracticeAreasStepProps) {
-  const practiceAreas = legalProfile.practice_areas || [];
+export function LegalPracticeAreasStep({ practiceAreas, onChange }: LegalPracticeAreasStepProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(practiceAreas.length > 0 ? 0 : null);
 
   const addPracticeArea = () => {
@@ -33,14 +32,13 @@ export function LegalPracticeAreasStep({ legalProfile, onChange }: LegalPractice
       ...emptyPracticeArea, 
       practice_area_id: `pa-${Date.now()}` 
     };
-    const updated = [...practiceAreas, newPracticeArea];
-    onChange({ ...legalProfile, practice_areas: updated });
+    onChange([...practiceAreas, newPracticeArea]);
     setExpandedIndex(practiceAreas.length);
   };
 
   const removePracticeArea = (index: number) => {
     const updated = practiceAreas.filter((_, i) => i !== index);
-    onChange({ ...legalProfile, practice_areas: updated });
+    onChange(updated);
     if (expandedIndex === index) {
       setExpandedIndex(null);
     } else if (expandedIndex !== null && expandedIndex > index) {
@@ -52,7 +50,7 @@ export function LegalPracticeAreasStep({ legalProfile, onChange }: LegalPractice
     const updated = practiceAreas.map((pa, i) => 
       i === index ? { ...pa, [field]: value } : pa
     );
-    onChange({ ...legalProfile, practice_areas: updated });
+    onChange(updated);
   };
 
   return (
