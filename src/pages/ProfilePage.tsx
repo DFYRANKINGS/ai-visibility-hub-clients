@@ -176,14 +176,28 @@ export default function ProfilePage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDirty, setIsDirty] = useState(false); // Track if user has made any edits
 
-  const [formData, setFormData] = useState<Partial<ClientProfile>>({
+  const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>({
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
     certifications: [], accreditations: [], insurance_accepted: [],
     practice_areas: [], medical_specialties: [],
     vertical: 'general',
   });
+
+  // Wrapper that marks form as dirty when user makes changes
+  const updateFormData = (data: Partial<ClientProfile> | ((prev: Partial<ClientProfile>) => Partial<ClientProfile>)) => {
+    setIsDirty(true);
+    if (typeof data === 'function') {
+      setFormDataInternal(data);
+    } else {
+      setFormDataInternal(prev => ({ ...prev, ...data }));
+    }
+  };
+
+  // For internal use (loading from DB/draft) - doesn't mark as dirty
+  const setFormData = setFormDataInternal;
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -212,9 +226,8 @@ export default function ProfilePage() {
             title: 'Loaded from local draft',
             description: 'We could not load your profile from the database, so we restored your latest draft from this browser.',
           });
-        } else {
-          toast({ title: 'Error', description: 'Failed to load profile data', variant: 'destructive' });
         }
+        // Suppress error toast on initial load - user hasn't edited anything yet
         setLoadingProfile(false);
         return;
       }
@@ -339,6 +352,11 @@ export default function ProfilePage() {
 
   const handleSaveSection = async () => {
     if (!user) return;
+    // Only save if the user has made edits
+    if (!isDirty) {
+      toast({ title: 'No changes to save', description: 'Make changes before saving.' });
+      return;
+    }
     if (currentStep === 'entity' && !validateEntity()) return;
 
     setSaving(true);
@@ -427,6 +445,12 @@ export default function ProfilePage() {
 
   const handleSubmit = async () => {
     if (!user) return;
+
+    // Only allow submit if user has made edits
+    if (!isDirty) {
+      toast({ title: 'No changes to submit', description: 'Make changes before submitting.' });
+      return;
+    }
 
     if (!formData.entity_name?.trim()) {
       toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
@@ -602,32 +626,32 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-6">
-              {currentStep === 'entity' && <EntityStep data={formData} onChange={setFormData} errors={errors} />}
-              {currentStep === 'credentials' && <CredentialsStep data={formData} onChange={setFormData} />}
+              {currentStep === 'entity' && <EntityStep data={formData} onChange={updateFormData} errors={errors} />}
+              {currentStep === 'credentials' && <CredentialsStep data={formData} onChange={updateFormData} />}
               {currentStep === 'services' && (
                 formData.vertical === 'legal' ? (
                   <LegalPracticeAreasStep 
                     practiceAreas={formData.practice_areas || []} 
-                    onChange={(pa: PracticeArea[]) => setFormData({ ...formData, practice_areas: pa })} 
+                    onChange={(pa: PracticeArea[]) => updateFormData({ practice_areas: pa })} 
                   />
                 ) : formData.vertical === 'medical' ? (
                   <MedicalSpecialtiesStep 
                     medicalSpecialties={formData.medical_specialties || []} 
-                    onChange={(ms: MedicalSpecialty[]) => setFormData({ ...formData, medical_specialties: ms })} 
+                    onChange={(ms: MedicalSpecialty[]) => updateFormData({ medical_specialties: ms })} 
                   />
                 ) : (
-                  <ServicesStep services={formData.services || []} onChange={(s) => setFormData({ ...formData, services: s })} />
+                  <ServicesStep services={formData.services || []} onChange={(s) => updateFormData({ services: s })} />
                 )
               )}
-              {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => setFormData({ ...formData, products: p })} />}
-              {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => setFormData({ ...formData, faqs: f })} />}
-              {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => setFormData({ ...formData, articles: a })} />}
-              {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => setFormData({ ...formData, reviews: r })} />}
-              {currentStep === 'locations' && <LocationsStep locations={formData.locations || []} onChange={(l) => setFormData({ ...formData, locations: l })} />}
-              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => setFormData({ ...formData, team_members: t })} />}
-              {currentStep === 'awards' && <AwardsStep awards={formData.awards || []} onChange={(a) => setFormData({ ...formData, awards: a })} />}
-              {currentStep === 'media' && <MediaStep mediaMentions={formData.media_mentions || []} onChange={(m) => setFormData({ ...formData, media_mentions: m })} />}
-              {currentStep === 'cases' && <CasesStep caseStudies={formData.case_studies || []} onChange={(c) => setFormData({ ...formData, case_studies: c })} />}
+              {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => updateFormData({ products: p })} />}
+              {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => updateFormData({ faqs: f })} />}
+              {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => updateFormData({ articles: a })} />}
+              {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => updateFormData({ reviews: r })} />}
+              {currentStep === 'locations' && <LocationsStep locations={formData.locations || []} onChange={(l) => updateFormData({ locations: l })} />}
+              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => updateFormData({ team_members: t })} />}
+              {currentStep === 'awards' && <AwardsStep awards={formData.awards || []} onChange={(a) => updateFormData({ awards: a })} />}
+              {currentStep === 'media' && <MediaStep mediaMentions={formData.media_mentions || []} onChange={(m) => updateFormData({ media_mentions: m })} />}
+              {currentStep === 'cases' && <CasesStep caseStudies={formData.case_studies || []} onChange={(c) => updateFormData({ case_studies: c })} />}
               {currentStep === 'review' && <ReviewStep data={formData} />}
             </div>
 
