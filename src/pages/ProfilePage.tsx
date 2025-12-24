@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
+
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
@@ -317,6 +317,46 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Only include columns that exist in the backend table.
+  // Vertical/credentials fields are still kept in local drafts.
+  const buildClientProfileUpsertPayload = () => {
+    const entityName = (formData.entity_name ?? '').trim() || 'Untitled';
+
+    return {
+      ...(profileId ? { id: profileId } : {}),
+      owner_user_id: user!.id,
+      entity_name: entityName,
+      legal_name: (formData as any).legal_name || null,
+
+      main_website_url: formData.main_website_url || null,
+      short_description: formData.short_description || null,
+      long_description: formData.long_description || null,
+      hours: formData.hours || null,
+      founding_year: formData.founding_year || null,
+      team_size: formData.team_size || null,
+
+      address_street: formData.address_street || null,
+      address_city: formData.address_city || null,
+      address_state: formData.address_state || null,
+      address_postal_code: formData.address_postal_code || null,
+
+      phone: formData.phone || null,
+      email: formData.email || null,
+
+      same_as: formData.same_as || [],
+      services: formData.services || [],
+      products: formData.products || [],
+      faqs: formData.faqs || [],
+      articles: formData.articles || [],
+      reviews: formData.reviews || [],
+      locations: formData.locations || [],
+      team_members: formData.team_members || [],
+      awards: formData.awards || [],
+      media_mentions: formData.media_mentions || [],
+      case_studies: formData.case_studies || [],
+    };
+  };
+
   const handleStepClick = (step: FormStep) => {
     // Mark current step as completed if it has data
     const stepDataMap: Record<string, any> = {
@@ -364,50 +404,7 @@ export default function ProfilePage() {
     // Always save a draft in this browser so sign-out/in doesn't lose work.
     saveProfileDraft(user.id, formData);
 
-    const profilePayload: any = {
-      ...(profileId ? { id: profileId } : {}),
-      owner_user_id: user.id,
-      agency_user_id: DEFAULT_AGENCY_USER_ID,
-      entity_name: formData.entity_name || 'Untitled',
-      legal_name: (formData as any).legal_name || null,
-      vertical: (formData as any).vertical || 'general',
-
-      main_website_url: formData.main_website_url || null,
-      short_description: formData.short_description || null,
-      long_description: formData.long_description || null,
-      hours: formData.hours || null,
-      founding_year: formData.founding_year || null,
-      team_size: formData.team_size || null,
-
-      address_street: formData.address_street || null,
-      address_city: formData.address_city || null,
-      address_state: formData.address_state || null,
-      address_postal_code: formData.address_postal_code || null,
-
-      phone: formData.phone || null,
-      email: formData.email || null,
-
-      same_as: formData.same_as || [],
-      services: formData.services || [],
-      products: formData.products || [],
-      faqs: formData.faqs || [],
-      articles: formData.articles || [],
-      reviews: formData.reviews || [],
-      locations: formData.locations || [],
-      team_members: formData.team_members || [],
-      awards: formData.awards || [],
-      media_mentions: formData.media_mentions || [],
-      case_studies: formData.case_studies || [],
-
-      // Credentials + vertical-specific
-      certifications: (formData as any).certifications || [],
-      accreditations: (formData as any).accreditations || [],
-      insurance_accepted: (formData as any).insurance_accepted || [],
-      practice_areas: (formData as any).practice_areas || [],
-      medical_specialties: (formData as any).medical_specialties || [],
-      legal_profile: (formData as any).legal_profile || {},
-      medical_profile: (formData as any).medical_profile || {},
-    };
+    const profilePayload = buildClientProfileUpsertPayload();
 
     const { data: saved, error } = await supabase
       .from('client_profile')
@@ -463,49 +460,7 @@ export default function ProfilePage() {
     // Keep a local draft even when submitting.
     saveProfileDraft(user.id, formData);
 
-    const profilePayload: any = {
-      ...(profileId ? { id: profileId } : {}),
-      owner_user_id: user.id,
-      agency_user_id: DEFAULT_AGENCY_USER_ID,
-      entity_name: formData.entity_name,
-      legal_name: (formData as any).legal_name || null,
-      vertical: (formData as any).vertical || 'general',
-
-      main_website_url: formData.main_website_url || null,
-      short_description: formData.short_description || null,
-      long_description: formData.long_description || null,
-      hours: formData.hours || null,
-      founding_year: formData.founding_year || null,
-      team_size: formData.team_size || null,
-
-      address_street: formData.address_street || null,
-      address_city: formData.address_city || null,
-      address_state: formData.address_state || null,
-      address_postal_code: formData.address_postal_code || null,
-
-      phone: formData.phone || null,
-      email: formData.email || null,
-
-      same_as: formData.same_as || [],
-      services: formData.services || [],
-      products: formData.products || [],
-      faqs: formData.faqs || [],
-      articles: formData.articles || [],
-      reviews: formData.reviews || [],
-      locations: formData.locations || [],
-      team_members: formData.team_members || [],
-      awards: formData.awards || [],
-      media_mentions: formData.media_mentions || [],
-      case_studies: formData.case_studies || [],
-
-      certifications: (formData as any).certifications || [],
-      accreditations: (formData as any).accreditations || [],
-      insurance_accepted: (formData as any).insurance_accepted || [],
-      practice_areas: (formData as any).practice_areas || [],
-      medical_specialties: (formData as any).medical_specialties || [],
-      legal_profile: (formData as any).legal_profile || {},
-      medical_profile: (formData as any).medical_profile || {},
-    };
+    const profilePayload = buildClientProfileUpsertPayload();
 
     const { data: saved, error } = await supabase
       .from('client_profile')
@@ -534,7 +489,7 @@ export default function ProfilePage() {
 
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
-        body: { ...profilePayload, user_email: user.email },
+        body: { ...formData, user_email: user.email },
       });
       if (emailError) console.log('Email notification failed', { message: emailError.message });
     } catch (emailErr) {
