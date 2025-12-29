@@ -85,7 +85,7 @@ export default function Index() {
 
   const validateEntity = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.entity_name?.trim()) newErrors.entity_name = 'Entity name is required';
+    if (!formData.business_name?.trim()) newErrors.business_name = 'Business name is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -103,8 +103,8 @@ export default function Index() {
   const handleSubmit = async () => {
     if (!user) return;
 
-    if (!formData.entity_name?.trim()) {
-      toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
+    if (!formData.business_name?.trim()) {
+      toast({ title: 'Error', description: 'Business name is required', variant: 'destructive' });
       setCurrentStep('entity');
       return;
     }
@@ -128,7 +128,7 @@ export default function Index() {
       ...(existing?.id ? { id: existing.id } : {}),
       owner_user_id: user.id,
       agency_user_id: HARDCODED_AGENCY_USER_ID,
-      entity_name: formData.entity_name,
+      business_name: formData.business_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,
       short_description: formData.short_description || null,

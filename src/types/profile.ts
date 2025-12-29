@@ -163,7 +163,7 @@ export type BusinessVertical = 'general' | 'legal' | 'medical';
 export interface ClientProfile {
   id?: string;
   owner_user_id: string;
-  entity_name: string;
+  business_name: string;
   legal_name?: string;
   main_website_url?: string;
   short_description?: string;
