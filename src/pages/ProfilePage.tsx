@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
-import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
@@ -24,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { safeUpsertClientProfile } from '@/lib/clientProfileUpsert';
 
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
@@ -53,11 +52,6 @@ const saveProfileDraft = (userId: string, data: Partial<ClientProfile>) => {
   } catch {
     // ignore storage errors
   }
-};
-
-const isMissingColumnError = (message?: string) => {
-  const m = (message || '').toLowerCase();
-  return m.includes('column') && (m.includes('does not exist') || m.includes('schema cache'));
 };
 
 const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
@@ -168,7 +162,6 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<FormStep>('entity');
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -199,10 +192,6 @@ export default function ProfilePage() {
 
   // For internal use (loading from DB/draft) - doesn't mark as dirty
   const setFormData = setFormDataInternal;
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
-  }, [user, authLoading, navigate]);
 
   // Load existing profile data when user logs in
   useEffect(() => {
@@ -237,7 +226,7 @@ export default function ProfilePage() {
         setProfileId(data.id);
 
         const fromDb: Partial<ClientProfile> = {
-          business_name: (data as any).business_name || data.entity_name,
+          business_name: (data as any).business_name,
           legal_name: (data as any).legal_name || undefined,
           vertical: (data as any).vertical || undefined,
 
@@ -245,7 +234,7 @@ export default function ProfilePage() {
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
           hours: data.hours || undefined,
-          founding_year: data.founding_year || undefined,
+          founding_year: (data as any).founding_year || undefined,
           team_size: data.team_size || undefined,
 
           address_street: data.address_street || undefined,
@@ -268,7 +257,7 @@ export default function ProfilePage() {
           media_mentions: (data.media_mentions as any[]) || [],
           case_studies: (data.case_studies as any[]) || [],
 
-          // Credentials + vertical-specific
+          // Credentials + vertical-specific (kept for local drafts; persisted if the backend supports them)
           certifications: ((data as any).certifications as any[]) || [],
           accreditations: ((data as any).accreditations as any[]) || [],
           insurance_accepted: ((data as any).insurance_accepted as any[]) || [],
@@ -283,7 +272,7 @@ export default function ProfilePage() {
 
         // Mark steps with data as completed
         const stepsWithData: FormStep[] = [];
-        if ((data as any).business_name || data.entity_name) stepsWithData.push('entity');
+        if ((data as any).business_name) stepsWithData.push('entity');
         if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0 || ((fromDb.insurance_accepted as any[])?.length || 0) > 0) {
           stepsWithData.push('credentials');
         }
@@ -311,6 +300,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+
   const validateEntity = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.business_name?.trim()) newErrors.business_name = 'Business name is required';
@@ -326,7 +316,6 @@ export default function ProfilePage() {
     return {
       ...(profileId ? { id: profileId } : {}),
       owner_user_id: user!.id,
-      agency_user_id: HARDCODED_AGENCY_USER_ID,
       business_name: businessName,
       legal_name: (formData as any).legal_name || null,
 
@@ -408,38 +397,41 @@ export default function ProfilePage() {
 
     const profilePayload = buildClientProfileUpsertPayload();
 
-    const { data: saved, error } = await supabase
-      .from('client_profile')
-      .upsert(profilePayload)
-      .select('id')
-      .single();
+    const result = await safeUpsertClientProfile(profilePayload);
 
     console.log('client_profile saveSection result', {
-      ok: !error,
-      id: saved?.id,
-      message: error?.message,
-      code: (error as any)?.code,
+      ok: !result.error,
+      id: result.id,
+      droppedColumns: result.droppedColumns,
+      message: result.error?.message,
     });
 
     setSaving(false);
 
-    if (error) {
+    if (result.error) {
       toast({
         title: 'Not saved to database',
-        description: `${error.message} (Your draft is saved locally in this browser.)`,
+        description: `${result.error.message} (Your draft is saved locally in this browser.)`,
         variant: 'destructive',
       });
       return;
     }
 
-    if (saved?.id && !profileId) setProfileId(saved.id);
+    if (result.id && !profileId) setProfileId(result.id);
 
     // Mark current step as completed
     if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
       setCompletedSteps((prev) => [...prev, currentStep]);
     }
 
-    toast({ title: 'Section saved', description: 'Saved to the database.' });
+    if (result.droppedColumns.length > 0) {
+      toast({
+        title: 'Saved with limitations',
+        description: `Saved, but these fields aren\'t supported in the database: ${result.droppedColumns.join(', ')} (kept in your local draft).`,
+      });
+    } else {
+      toast({ title: 'Section saved', description: 'Saved to the database.' });
+    }
   };
 
   const handleSubmit = async () => {
@@ -464,30 +456,26 @@ export default function ProfilePage() {
 
     const profilePayload = buildClientProfileUpsertPayload();
 
-    const { data: saved, error } = await supabase
-      .from('client_profile')
-      .upsert(profilePayload)
-      .select('id')
-      .single();
+    const result = await safeUpsertClientProfile(profilePayload);
 
     console.log('client_profile submit result', {
-      ok: !error,
-      id: saved?.id,
-      message: error?.message,
-      code: (error as any)?.code,
+      ok: !result.error,
+      id: result.id,
+      droppedColumns: result.droppedColumns,
+      message: result.error?.message,
     });
 
-    if (error) {
+    if (result.error) {
       setSubmitting(false);
       toast({
         title: 'Not submitted',
-        description: `${error.message} (Your draft is saved locally in this browser.)`,
+        description: `${result.error.message} (Your draft is saved locally in this browser.)`,
         variant: 'destructive',
       });
       return;
     }
 
-    if (saved?.id && !profileId) setProfileId(saved.id);
+    if (result.id && !profileId) setProfileId(result.id);
 
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
@@ -499,7 +487,15 @@ export default function ProfilePage() {
     }
 
     setSubmitting(false);
-    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been submitted.' });
+
+    if (result.droppedColumns.length > 0) {
+      toast({
+        title: 'Submitted with limitations',
+        description: `Submitted, but these fields aren\'t supported in the database: ${result.droppedColumns.join(', ')} (kept in your local draft).`,
+      });
+    } else {
+      toast({ title: 'Success!', description: 'Your AI Visibility Profile has been submitted.' });
+    }
   };
 
   if (authLoading || loadingProfile || !user) {
