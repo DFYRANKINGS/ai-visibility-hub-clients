@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
+import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
 import { FormProgress } from '@/components/FormProgress';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
@@ -84,7 +85,7 @@ export default function Index() {
     const { data: existing, error: lookupError } = await supabase
       .from('client_profile')
       .select('id')
-      .eq('owner_user_id', user.id)
+      .eq('owner_user_id', DEFAULT_AGENCY_USER_ID)
       .maybeSingle();
 
     if (lookupError) {
@@ -96,7 +97,7 @@ export default function Index() {
 
     const profilePayload: any = {
       ...(existing?.id ? { id: existing.id } : {}),
-      owner_user_id: user.id,
+      owner_user_id: DEFAULT_AGENCY_USER_ID,
       entity_name: formData.entity_name,
       legal_name: formData.legal_name || null,
       main_website_url: formData.main_website_url || null,

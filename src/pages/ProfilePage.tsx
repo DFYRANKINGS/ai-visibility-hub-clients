@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
+import { DEFAULT_AGENCY_USER_ID } from '@/lib/constants';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
@@ -324,7 +325,7 @@ export default function ProfilePage() {
 
     return {
       ...(profileId ? { id: profileId } : {}),
-      owner_user_id: user!.id,
+      owner_user_id: DEFAULT_AGENCY_USER_ID,
       entity_name: entityName,
       legal_name: (formData as any).legal_name || null,
 
