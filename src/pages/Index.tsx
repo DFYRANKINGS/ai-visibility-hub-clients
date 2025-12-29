@@ -19,15 +19,25 @@ import { MediaStep } from '@/components/steps/MediaStep';
 import { CasesStep } from '@/components/steps/CasesStep';
 import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/FormField';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Send, Sparkles, LogOut, Loader2 } from 'lucide-react';
-
+import { ArrowLeft, ArrowRight, Send, Sparkles, LogOut, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const steps: FormStep[] = ['entity', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
 export default function Index() {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  // Auth form state
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+
+  // Profile form state
   const [currentStep, setCurrentStep] = useState<FormStep>('entity');
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -40,16 +50,36 @@ export default function Index() {
     medical_specialties: [],
   });
 
+  // Redirect authenticated users to profile page for sidebar navigation
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate('/auth');
-      } else {
-        // Redirect authenticated users to profile page for consistent sidebar navigation
-        navigate('/profile');
-      }
+    if (!authLoading && user) {
+      navigate('/profile');
     }
   }, [user, authLoading, navigate]);
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' });
+      return;
+    }
+    setAuthSubmitting(true);
+    const { error } = isLogin ? await signIn(email, password) : await signUp(email, password);
+    setAuthSubmitting(false);
+    
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      if (!isLogin) {
+        toast({ 
+          title: 'Check your email', 
+          description: 'We sent you a confirmation link. Please check your email and click the link to verify your account before signing in.',
+        });
+        setIsLogin(true);
+      }
+      // On successful login, useEffect will redirect to /profile
+    }
+  };
 
   const currentIndex = steps.indexOf(currentStep);
 
@@ -81,7 +111,6 @@ export default function Index() {
 
     setSubmitting(true);
 
-    // Ensure we upsert against the user's existing profile row (if any)
     const { data: existing, error: lookupError } = await supabase
       .from('client_profile')
       .select('id')
@@ -145,7 +174,6 @@ export default function Index() {
       return;
     }
 
-    // Send email notification (non-blocking)
     try {
       const { error: emailError } = await supabase.functions.invoke('send-profile-email', {
         body: { ...formData, user_email: user.email },
@@ -162,10 +190,83 @@ export default function Index() {
     setCompletedSteps([]);
   };
 
-  if (authLoading || !user) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
+  // Show auth form for logged-out users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-4 shadow-glow">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="font-heading text-3xl font-bold text-primary-foreground">AI Visibility Profile</h1>
+            <p className="text-primary-foreground/70 mt-2">Client Portal</p>
+          </div>
+
+          <div className="bg-card rounded-2xl shadow-card p-8">
+            <h2 className="font-heading text-xl font-semibold text-foreground mb-6">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </h2>
+
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              <FormField label="Email">
+                <Input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                />
+              </FormField>
+
+              <FormField label="Password">
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="pr-10" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </FormField>
+
+              <Button type="submit" variant="hero" size="lg" className="w-full" disabled={authSubmitting}>
+                {authSubmitting ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <button 
+                type="button" 
+                onClick={() => setIsLogin(!isLogin)} 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile form for authenticated users (this will redirect to /profile via useEffect)
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
