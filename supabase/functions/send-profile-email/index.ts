@@ -46,7 +46,6 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
       <li><strong>Website:</strong> ${profileData.main_website_url || "N/A"}</li>
       <li><strong>Phone:</strong> ${profileData.phone || "N/A"}</li>
       <li><strong>Email:</strong> ${profileData.email || "N/A"}</li>
-      <li><strong>Founding Year:</strong> ${profileData.founding_year || "N/A"}</li>
       <li><strong>Team Size:</strong> ${profileData.team_size || "N/A"}</li>
       <li><strong>Hours:</strong> ${profileData.hours || "N/A"}</li>
     </ul>
@@ -87,9 +86,6 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
 
     <h3>Case Studies</h3>
     <p>${(profileData.case_studies || []).length} case study/studies</p>
-
-    <h3>Social Links</h3>
-    <p>${(profileData.same_as || []).join(", ") || "None"}</p>
 
     <hr>
     <p><em>Submitted at: ${new Date().toISOString()}</em></p>

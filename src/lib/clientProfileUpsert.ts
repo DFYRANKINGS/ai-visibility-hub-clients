@@ -54,7 +54,12 @@ export async function safeUpsertClientProfile(
   // Never send columns that we know don't exist in the canonical table.
   // (If you add new columns in the backend later, remove them from here.)
   const sanitizedBase: Record<string, any> = { ...payload };
+
+  // Force-drop known non-canonical / legacy columns
   delete sanitizedBase.agency_user_id;
+  delete sanitizedBase.entity_name;
+  delete sanitizedBase.founding_year;
+  delete sanitizedBase.same_as;
 
   let blocked = loadBlockedColumns();
   let working: Record<string, any> = { ...sanitizedBase };
