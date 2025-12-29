@@ -38,7 +38,7 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
 
   const emailHtml = `
     <h1>New AI Visibility Profile Submission</h1>
-    <h2>Organization: ${profileData.entity_name || "Not provided"}</h2>
+    <h2>Organization: ${profileData.business_name || "Not provided"}</h2>
     
     <h3>Basic Information</h3>
     <ul>
@@ -104,8 +104,8 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
     body: JSON.stringify({
       email: {
         html: emailHtml,
-        text: `New AI Visibility Profile submission from ${profileData.entity_name || "Unknown"}`,
-        subject: `New AI Visibility Profile: ${profileData.entity_name || "New Submission"}`,
+        text: `New AI Visibility Profile submission from ${profileData.business_name || "Unknown"}`,
+        subject: `New AI Visibility Profile: ${profileData.business_name || "New Submission"}`,
         from: {
           name: "AI Visibility Profile",
           email: "noreply@aiovisibility.com",
@@ -163,7 +163,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const profileData = await req.json();
-    console.log("Received profile submission for:", profileData.entity_name);
+    console.log("Received profile submission for:", profileData.business_name);
 
     const token = await getSendPulseToken();
     await sendEmail(token, profileData);

@@ -61,14 +61,14 @@ const isMissingColumnError = (message?: string) => {
 };
 
 const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
-  const entityName = data.entity_name?.trim() || 'Profile';
-  const fileName = `${entityName} Master Profile.xlsx`;
+  const businessName = data.business_name?.trim() || 'Profile';
+  const fileName = `${businessName} Master Profile.xlsx`;
 
   const workbook = XLSX.utils.book_new();
 
   // Organization Info sheet
   const orgData = [
-    ['Entity Name', data.entity_name || ''],
+    ['Business Name', data.business_name || ''],
     ['Legal Name', data.legal_name || ''],
     ['Business Vertical', data.vertical || ''],
     ['Main Website URL', data.main_website_url || ''],
@@ -237,7 +237,7 @@ export default function ProfilePage() {
         setProfileId(data.id);
 
         const fromDb: Partial<ClientProfile> = {
-          entity_name: data.entity_name,
+          business_name: (data as any).business_name || data.entity_name,
           legal_name: (data as any).legal_name || undefined,
           vertical: (data as any).vertical || undefined,
 
@@ -283,7 +283,7 @@ export default function ProfilePage() {
 
         // Mark steps with data as completed
         const stepsWithData: FormStep[] = [];
-        if (data.entity_name) stepsWithData.push('entity');
+        if ((data as any).business_name || data.entity_name) stepsWithData.push('entity');
         if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0 || ((fromDb.insurance_accepted as any[])?.length || 0) > 0) {
           stepsWithData.push('credentials');
         }
@@ -313,7 +313,7 @@ export default function ProfilePage() {
 
   const validateEntity = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.entity_name?.trim()) newErrors.entity_name = 'Entity name is required';
+    if (!formData.business_name?.trim()) newErrors.business_name = 'Business name is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -321,13 +321,13 @@ export default function ProfilePage() {
   // Only include columns that exist in the backend table.
   // Vertical/credentials fields are still kept in local drafts.
   const buildClientProfileUpsertPayload = () => {
-    const entityName = (formData.entity_name ?? '').trim() || 'Untitled';
+    const businessName = (formData.business_name ?? '').trim() || 'Untitled';
 
     return {
       ...(profileId ? { id: profileId } : {}),
       owner_user_id: user!.id,
       agency_user_id: HARDCODED_AGENCY_USER_ID,
-      entity_name: entityName,
+      business_name: businessName,
       legal_name: (formData as any).legal_name || null,
 
       main_website_url: formData.main_website_url || null,
@@ -362,7 +362,7 @@ export default function ProfilePage() {
   const handleStepClick = (step: FormStep) => {
     // Mark current step as completed if it has data
     const stepDataMap: Record<string, any> = {
-      entity: formData.entity_name?.trim(),
+      entity: formData.business_name?.trim(),
       credentials: (formData.certifications?.length || 0) > 0 || 
                    (formData.accreditations?.length || 0) > 0 || 
                    (formData.insurance_accepted?.length || 0) > 0,
@@ -451,8 +451,8 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!formData.entity_name?.trim()) {
-      toast({ title: 'Error', description: 'Entity name is required', variant: 'destructive' });
+    if (!formData.business_name?.trim()) {
+      toast({ title: 'Error', description: 'Business name is required', variant: 'destructive' });
       setCurrentStep('entity');
       return;
     }

@@ -23,11 +23,11 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
         description="Enter the basic details about your business or organization."
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField label="Entity/Business Name" required error={errors.entity_name}>
+          <FormField label="Business Name" required error={errors.business_name}>
             <Input
               placeholder="Your Company Name"
-              value={data.entity_name || ''}
-              onChange={(e) => handleChange('entity_name', e.target.value)}
+              value={data.business_name || ''}
+              onChange={(e) => handleChange('business_name', e.target.value)}
             />
           </FormField>
 
