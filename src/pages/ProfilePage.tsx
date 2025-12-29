@@ -69,7 +69,6 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     ['Short Description', data.short_description || ''],
     ['Long Description', data.long_description || ''],
     ['Hours', data.hours || ''],
-    ['Founding Year', data.founding_year || ''],
     ['Team Size', data.team_size || ''],
     ['Phone', data.phone || ''],
     ['Email', data.email || ''],
@@ -150,13 +149,6 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
       (s) => [s.name || '', s.conditions_treated || '', s.procedures_offered || '', s.patient_population || '', s.description || '']);
   }
 
-  // Same As (Social Links)
-  if (data.same_as && data.same_as.length > 0) {
-    const sameAsData = [['Social Links'], ...data.same_as.map((url) => [url])];
-    const sameAsSheet = XLSX.utils.aoa_to_sheet(sameAsData);
-    XLSX.utils.book_append_sheet(workbook, sameAsSheet, 'Social Links');
-  }
-
   XLSX.writeFile(workbook, fileName);
 };
 
@@ -234,7 +226,6 @@ export default function ProfilePage() {
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
           hours: data.hours || undefined,
-          founding_year: (data as any).founding_year || undefined,
           team_size: data.team_size || undefined,
 
           address_street: data.address_street || undefined,
@@ -245,7 +236,6 @@ export default function ProfilePage() {
           phone: data.phone || undefined,
           email: data.email || undefined,
 
-          same_as: (data.same_as as string[]) || [],
           services: (data.services as any[]) || [],
           products: (data.products as any[]) || [],
           faqs: (data.faqs as any[]) || [],
@@ -323,7 +313,6 @@ export default function ProfilePage() {
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
       hours: formData.hours || null,
-      founding_year: formData.founding_year || null,
       team_size: formData.team_size || null,
 
       address_street: formData.address_street || null,
@@ -334,7 +323,6 @@ export default function ProfilePage() {
       phone: formData.phone || null,
       email: formData.email || null,
 
-      same_as: formData.same_as || [],
       services: formData.services || [],
       products: formData.products || [],
       faqs: formData.faqs || [],

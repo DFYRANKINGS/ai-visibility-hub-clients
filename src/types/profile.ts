@@ -169,7 +169,6 @@ export interface ClientProfile {
   short_description?: string;
   long_description?: string;
   hours?: string;
-  founding_year?: number;
   team_size?: number;
   address_street?: string;
   address_city?: string;
@@ -177,7 +176,6 @@ export interface ClientProfile {
   address_postal_code?: string;
   phone?: string;
   email?: string;
-  same_as?: string[];
   services?: Service[];  // business only
   products?: Product[];
   faqs?: FAQ[];

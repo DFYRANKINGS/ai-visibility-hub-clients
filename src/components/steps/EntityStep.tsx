@@ -74,16 +74,6 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             />
           </FormField>
 
-          <FormField label="Founding Year">
-            <Input
-              type="number"
-              placeholder="2020"
-              min="1800"
-              max={new Date().getFullYear()}
-              value={data.founding_year || ''}
-              onChange={(e) => handleChange('founding_year', parseInt(e.target.value) || '')}
-            />
-          </FormField>
 
           <FormField label="Team Size">
             <Input
