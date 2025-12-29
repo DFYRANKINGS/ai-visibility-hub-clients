@@ -16,10 +16,10 @@ export default function Auth() {
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect authenticated users
+  // Redirect authenticated users away from /auth
   useEffect(() => {
     if (user) {
-      navigate('/profile');
+      navigate('/');
     }
   }, [user, navigate]);
   
@@ -43,7 +43,7 @@ export default function Auth() {
         });
         setIsLogin(true);
       } else {
-        navigate('/profile');
+        navigate('/');
       }
     }
   };
