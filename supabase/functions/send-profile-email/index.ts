@@ -43,7 +43,7 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
     <h3>Basic Information</h3>
     <ul>
       <li><strong>Legal Name:</strong> ${profileData.legal_name || "N/A"}</li>
-      <li><strong>Website:</strong> ${profileData.main_website_url || "N/A"}</li>
+      <li><strong>Website:</strong> ${profileData.business_url || "N/A"}</li>
       <li><strong>Phone:</strong> ${profileData.phone || "N/A"}</li>
       <li><strong>Email:</strong> ${profileData.email || "N/A"}</li>
       <li><strong>Team Size:</strong> ${profileData.team_size || "N/A"}</li>

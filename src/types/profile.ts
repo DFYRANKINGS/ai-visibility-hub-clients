@@ -167,7 +167,7 @@ export interface ClientProfile {
   agency_user_id: string;
   business_name: string;
   legal_name?: string;
-  main_website_url?: string;
+  business_url?: string;
   short_description?: string;
   long_description?: string;
   hours?: string;

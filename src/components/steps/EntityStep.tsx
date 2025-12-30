@@ -51,8 +51,8 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             <Input
               type="url"
               placeholder="https://www.example.com"
-              value={data.main_website_url || ''}
-              onChange={(e) => handleChange('main_website_url', e.target.value)}
+              value={data.business_url || ''}
+              onChange={(e) => handleChange('business_url', e.target.value)}
             />
           </FormField>
 
