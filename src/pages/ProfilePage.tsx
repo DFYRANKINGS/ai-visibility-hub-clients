@@ -66,7 +66,7 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     ['Business Name', data.business_name || ''],
     ['Legal Name', data.legal_name || ''],
     ['Business Vertical', data.vertical || ''],
-    ['Main Website URL', data.main_website_url || ''],
+    ['Business URL', data.business_url || ''],
     ['Short Description', data.short_description || ''],
     ['Long Description', data.long_description || ''],
     ['Hours', data.hours || ''],
@@ -229,7 +229,7 @@ export default function ProfilePage() {
           legal_name: (data as any).legal_name || undefined,
           vertical: (data as any).vertical || undefined,
 
-          main_website_url: data.main_website_url || undefined,
+          business_url: data.business_url || undefined,
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
           hours: data.hours || undefined,
@@ -319,7 +319,7 @@ export default function ProfilePage() {
       business_name: businessName,
       legal_name: (formData as any).legal_name || null,
 
-      main_website_url: formData.main_website_url || null,
+      business_url: formData.business_url || null,
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
       hours: formData.hours || null,

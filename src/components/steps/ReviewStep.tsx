@@ -31,7 +31,7 @@ export function ReviewStep({ data }: ReviewStepProps) {
           <div className="p-4 bg-accent/50 rounded-xl">
             <h3 className="font-heading text-xl font-semibold text-foreground">{data.business_name}</h3>
             {data.short_description && <p className="text-muted-foreground mt-1">{data.short_description}</p>}
-            {data.main_website_url && <p className="text-primary text-sm mt-2">{data.main_website_url}</p>}
+            {data.business_url && <p className="text-primary text-sm mt-2">{data.business_url}</p>}
           </div>
         )}
         
