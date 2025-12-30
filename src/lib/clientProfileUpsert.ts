@@ -1,23 +1,26 @@
 import { supabase } from "@/integrations/supabase/client";
+import { buildClientProfilePayload } from './buildClientProfilePayload';
 
 export type SafeUpsertResult = {
   id?: string;
   error?: { message: string };
-  droppedColumns: string[];
 };
 
 /**
  * Strict upsert into public.client_profile (external DB).
  *
  * Rules:
- * - Do NOT drop columns
+ * - Filter payload to only allowed columns before upsert
  * - Do NOT retry with modified payload
  * - Log payload keys once per call
  * - Log full error response if any
  */
 export async function safeUpsertClientProfile(
-  payload: Record<string, any>
+  rawPayload: Record<string, any>
 ): Promise<SafeUpsertResult> {
+  // Filter to allowed columns only
+  const payload = buildClientProfilePayload(rawPayload);
+
   console.log("[client_profile] upsert payload keys", Object.keys(payload));
 
   const { data, error } = await supabase
@@ -28,8 +31,8 @@ export async function safeUpsertClientProfile(
 
   if (error) {
     console.error("[client_profile] upsert error", error);
-    return { droppedColumns: [], error: { message: error.message } };
+    return { error: { message: error.message } };
   }
 
-  return { id: data?.id, droppedColumns: [] };
+  return { id: data?.id };
 }
