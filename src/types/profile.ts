@@ -162,7 +162,9 @@ export type BusinessVertical = 'general' | 'legal' | 'medical';
 
 export interface ClientProfile {
   id?: string;
+  entity_id: string;
   owner_user_id: string;
+  agency_user_id: string;
   business_name: string;
   legal_name?: string;
   main_website_url?: string;
