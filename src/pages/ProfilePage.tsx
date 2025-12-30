@@ -23,6 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { safeUpsertClientProfile } from '@/lib/clientProfileUpsert';
+import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
 
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
@@ -164,13 +165,15 @@ export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false); // Track if user has made any edits
 
-  const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>({
+  const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>(() => ({
+    entity_id: crypto.randomUUID(),
+    agency_user_id: HARDCODED_AGENCY_USER_ID,
     services: [], products: [], faqs: [], articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
     certifications: [], accreditations: [], insurance_accepted: [],
     practice_areas: [], medical_specialties: [],
     vertical: 'general',
-  });
+  }));
 
   // Wrapper that marks form as dirty when user makes changes
   const updateFormData = (data: Partial<ClientProfile> | ((prev: Partial<ClientProfile>) => Partial<ClientProfile>)) => {
@@ -218,6 +221,10 @@ export default function ProfilePage() {
         setProfileId(data.id);
 
         const fromDb: Partial<ClientProfile> = {
+          entity_id: (data as any).entity_id,
+          owner_user_id: (data as any).owner_user_id,
+          agency_user_id: (data as any).agency_user_id ?? HARDCODED_AGENCY_USER_ID,
+
           business_name: (data as any).business_name,
           legal_name: (data as any).legal_name || undefined,
           vertical: (data as any).vertical || undefined,
@@ -298,14 +305,17 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Only include columns that exist in the backend table.
-  // Vertical/credentials fields are still kept in local drafts.
   const buildClientProfileUpsertPayload = () => {
     const businessName = (formData.business_name ?? '').trim() || 'Untitled';
 
+    // Required canonical columns
+    const entityId = formData.entity_id ?? crypto.randomUUID();
+
     return {
       ...(profileId ? { id: profileId } : {}),
+      entity_id: entityId,
       owner_user_id: user!.id,
+      agency_user_id: HARDCODED_AGENCY_USER_ID,
       business_name: businessName,
       legal_name: (formData as any).legal_name || null,
 
@@ -387,13 +397,6 @@ export default function ProfilePage() {
 
     const result = await safeUpsertClientProfile(profilePayload);
 
-    console.log('client_profile saveSection result', {
-      ok: !result.error,
-      id: result.id,
-      droppedColumns: result.droppedColumns,
-      message: result.error?.message,
-    });
-
     setSaving(false);
 
     if (result.error) {
@@ -412,14 +415,7 @@ export default function ProfilePage() {
       setCompletedSteps((prev) => [...prev, currentStep]);
     }
 
-    if (result.droppedColumns.length > 0) {
-      toast({
-        title: 'Saved with limitations',
-        description: `Saved, but these fields aren\'t supported in the database: ${result.droppedColumns.join(', ')} (kept in your local draft).`,
-      });
-    } else {
-      toast({ title: 'Section saved', description: 'Saved to the database.' });
-    }
+    toast({ title: 'Section saved', description: 'Saved to the database.' });
   };
 
   const handleSubmit = async () => {
@@ -446,13 +442,6 @@ export default function ProfilePage() {
 
     const result = await safeUpsertClientProfile(profilePayload);
 
-    console.log('client_profile submit result', {
-      ok: !result.error,
-      id: result.id,
-      droppedColumns: result.droppedColumns,
-      message: result.error?.message,
-    });
-
     if (result.error) {
       setSubmitting(false);
       toast({
@@ -476,14 +465,7 @@ export default function ProfilePage() {
 
     setSubmitting(false);
 
-    if (result.droppedColumns.length > 0) {
-      toast({
-        title: 'Submitted with limitations',
-        description: `Submitted, but these fields aren\'t supported in the database: ${result.droppedColumns.join(', ')} (kept in your local draft).`,
-      });
-    } else {
-      toast({ title: 'Success!', description: 'Your AI Visibility Profile has been submitted.' });
-    }
+    toast({ title: 'Success!', description: 'Your AI Visibility Profile has been submitted.' });
   };
 
   if (authLoading || loadingProfile || !user) {
