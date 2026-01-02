@@ -25,7 +25,7 @@ export async function safeUpsertClientProfile(
 
   const { data, error } = await supabase
     .from("client_profile")
-    .upsert(payload as any, { onConflict: "owner_user_id,entity_id" })
+    .upsert(payload as any, { onConflict: "entity_id" })
     .select("id")
     .maybeSingle();
 
