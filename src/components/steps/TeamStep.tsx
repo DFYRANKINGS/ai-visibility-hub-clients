@@ -37,11 +37,38 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
     }
   };
 
-  const updateMember = (index: number, field: keyof TeamMember, value: string) => {
+  const updateMember = (index: number, field: keyof TeamMember, value: string | string[]) => {
     const updated = teamMembers.map((member, i) => 
       i === index ? { ...member, [field]: value } : member
     );
     onChange(updated);
+  };
+
+  // Handle specialties as comma-separated input, parse to array onBlur
+  const handleSpecialtiesChange = (index: number, value: string) => {
+    // Store raw string while typing
+    const updated = teamMembers.map((member, i) => 
+      i === index ? { ...member, _specialtiesRaw: value } : member
+    );
+    onChange(updated);
+  };
+
+  const handleSpecialtiesBlur = (index: number) => {
+    const member = teamMembers[index];
+    const raw = (member as any)._specialtiesRaw ?? member.specialties?.join(', ') ?? '';
+    const parsed = raw.split(',').map((v: string) => v.trim()).filter(Boolean);
+    const updated = teamMembers.map((m, i) => {
+      if (i !== index) return m;
+      const { _specialtiesRaw, ...rest } = m as any;
+      return { ...rest, specialties: parsed };
+    });
+    onChange(updated);
+  };
+
+  const getSpecialtiesDisplayValue = (member: TeamMember) => {
+    const raw = (member as any)._specialtiesRaw;
+    if (raw !== undefined) return raw;
+    return member.specialties?.join(', ') ?? '';
   };
 
   return (
@@ -141,6 +168,15 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
                       placeholder="Optional"
                       value={member.bar_number || ''}
                       onChange={(e) => updateMember(index, 'bar_number', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Specialties" hint="Comma-separated">
+                    <Input
+                      placeholder="e.g., Family Law, Personal Injury"
+                      value={getSpecialtiesDisplayValue(member)}
+                      onChange={(e) => handleSpecialtiesChange(index, e.target.value)}
+                      onBlur={() => handleSpecialtiesBlur(index)}
                     />
                   </FormField>
                 </div>
