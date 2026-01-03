@@ -20,10 +20,11 @@ import { CasesStep } from '@/components/steps/CasesStep';
 import { ReviewStep } from '@/components/steps/ReviewStep';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download } from 'lucide-react';
+import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { safeUpsertClientProfile } from '@/lib/clientProfileUpsert';
 import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
+import { parseXlsxToProfile, readFileAsArrayBuffer } from '@/lib/xlsxImport';
 
 
 const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
@@ -164,6 +165,7 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false); // Track if user has made any edits
+  const [importing, setImporting] = useState(false);
 
   const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>(() => ({
     entity_id: crypto.randomUUID(),
@@ -418,6 +420,40 @@ export default function ProfilePage() {
     toast({ title: 'Section saved', description: 'Saved to the database.' });
   };
 
+  // XLSX Import handler
+  const handleXlsxImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so the same file can be re-selected
+    event.target.value = '';
+
+    setImporting(true);
+
+    try {
+      const buffer = await readFileAsArrayBuffer(file);
+      const imported = parseXlsxToProfile(buffer, formData);
+      
+      // Merge imported data into form state
+      setFormDataInternal(prev => ({ ...prev, ...imported }));
+      setIsDirty(true);
+      
+      toast({ 
+        title: 'Import successful', 
+        description: 'XLSX data has been imported. Review and save to persist changes.' 
+      });
+    } catch (err) {
+      console.error('XLSX import error:', err);
+      toast({ 
+        title: 'Import failed', 
+        description: 'Could not parse the XLSX file. Please check the format.', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
 
@@ -594,7 +630,21 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">
                     Review your profile and submit when ready
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleXlsxImport}
+                        className="hidden"
+                        disabled={importing}
+                      />
+                      <Button variant="outline" size="lg" asChild disabled={importing}>
+                        <span>
+                          {importing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Importing...</> : <><Upload className="w-4 h-4 mr-2" />Import XLSX</>}
+                        </span>
+                      </Button>
+                    </label>
                     <Button variant="outline" size="lg" onClick={() => downloadProfileAsXlsx(formData)}>
                       <Download className="w-4 h-4 mr-2" />Download XLSX
                     </Button>

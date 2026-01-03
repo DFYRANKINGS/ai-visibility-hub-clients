@@ -74,6 +74,7 @@ export interface TeamMember {
   license_number?: string;
   npi_number?: string;
   bar_number?: string;
+  specialties?: string[]; // Per-member specialties (not global)
 }
 
 export interface Award {
