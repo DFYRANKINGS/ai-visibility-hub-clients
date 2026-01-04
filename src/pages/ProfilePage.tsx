@@ -74,10 +74,7 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     ['Team Size', data.team_size || ''],
     ['Phone', data.phone || ''],
     ['Email', data.email || ''],
-    ['Address Street', data.address_street || ''],
-    ['Address City', data.address_city || ''],
-    ['Address State', data.address_state || ''],
-    ['Address Postal Code', data.address_postal_code || ''],
+    // NOTE: address_* fields removed - all address data lives in locations[]
   ];
   const orgSheet = XLSX.utils.aoa_to_sheet(orgData);
   XLSX.utils.book_append_sheet(workbook, orgSheet, 'Organization');
@@ -237,11 +234,6 @@ export default function ProfilePage() {
           hours: data.hours || undefined,
           team_size: data.team_size || undefined,
 
-          address_street: data.address_street || undefined,
-          address_city: data.address_city || undefined,
-          address_state: data.address_state || undefined,
-          address_postal_code: data.address_postal_code || undefined,
-
           phone: data.phone || undefined,
           email: data.email || undefined,
 
@@ -326,11 +318,6 @@ export default function ProfilePage() {
       long_description: formData.long_description || null,
       hours: formData.hours || null,
       team_size: formData.team_size || null,
-
-      address_street: formData.address_street || null,
-      address_city: formData.address_city || null,
-      address_state: formData.address_state || null,
-      address_postal_code: formData.address_postal_code || null,
 
       phone: formData.phone || null,
       email: formData.email || null,

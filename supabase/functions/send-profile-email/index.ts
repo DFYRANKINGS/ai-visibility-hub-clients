@@ -50,8 +50,8 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
       <li><strong>Hours:</strong> ${profileData.hours || "N/A"}</li>
     </ul>
 
-    <h3>Address</h3>
-    <p>${profileData.address_street || ""} ${profileData.address_city || ""}, ${profileData.address_state || ""} ${profileData.address_postal_code || ""}</p>
+    <h3>Primary Location</h3>
+    <p>${(profileData.locations || [])[0] ? `${(profileData.locations[0].address_street || '')} ${(profileData.locations[0].address_city || '')}, ${(profileData.locations[0].address_state || '')} ${(profileData.locations[0].address_postal_code || '')}` : 'Not provided'}</p>
 
     <h3>Description</h3>
     <p><strong>Short:</strong> ${profileData.short_description || "N/A"}</p>

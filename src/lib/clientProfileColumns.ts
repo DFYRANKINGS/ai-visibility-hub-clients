@@ -23,10 +23,6 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   // Contact
   'phone',
   'email',
-  'address_street',
-  'address_city',
-  'address_state',
-  'address_postal_code',
   'hours',
 
   // JSONB arrays - locations & team

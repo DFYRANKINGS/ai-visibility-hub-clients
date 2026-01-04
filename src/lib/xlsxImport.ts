@@ -32,10 +32,7 @@ const parseOrganizationSheet = (sheet: XLSX.WorkSheet): Partial<ClientProfile> =
     'Team Size': 'team_size',
     'Phone': 'phone',
     'Email': 'email',
-    'Address Street': 'address_street',
-    'Address City': 'address_city',
-    'Address State': 'address_state',
-    'Address Postal Code': 'address_postal_code',
+    // NOTE: address_* fields are NOT mapped - all address data lives in locations[]
   };
 
   for (const row of data) {
