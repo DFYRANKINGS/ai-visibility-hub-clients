@@ -15,10 +15,10 @@ interface LocationsStepProps {
 const emptyLocation: Location = {
   location_id: '',
   location_name: '',
-  address_street: '',
-  address_city: '',
-  address_state: '',
-  address_postal_code: '',
+  street: '',
+  city: '',
+  state: '',
+  postal_code: '',
   phone: '',
   hours: '',
 };
@@ -104,32 +104,32 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
                   <FormField label="Street Address" className="md:col-span-2">
                     <Input
                       placeholder="123 Main Street"
-                      value={location.address_street}
-                      onChange={(e) => updateLocation(index, 'address_street', e.target.value)}
+                      value={location.street}
+                      onChange={(e) => updateLocation(index, 'street', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="City">
                     <Input
                       placeholder="New York"
-                      value={location.address_city}
-                      onChange={(e) => updateLocation(index, 'address_city', e.target.value)}
+                      value={location.city}
+                      onChange={(e) => updateLocation(index, 'city', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="State">
                     <Input
                       placeholder="NY"
-                      value={location.address_state}
-                      onChange={(e) => updateLocation(index, 'address_state', e.target.value)}
+                      value={location.state}
+                      onChange={(e) => updateLocation(index, 'state', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="Postal Code">
                     <Input
                       placeholder="10001"
-                      value={location.address_postal_code}
-                      onChange={(e) => updateLocation(index, 'address_postal_code', e.target.value)}
+                      value={location.postal_code}
+                      onChange={(e) => updateLocation(index, 'postal_code', e.target.value)}
                     />
                   </FormField>
 
@@ -138,26 +138,6 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
                       placeholder="Mon-Fri 9AM-5PM"
                       value={location.hours}
                       onChange={(e) => updateLocation(index, 'hours', e.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="Latitude">
-                    <Input
-                      type="number"
-                      step="any"
-                      placeholder="40.7128"
-                      value={location.geo_latitude || ''}
-                      onChange={(e) => updateLocation(index, 'geo_latitude', parseFloat(e.target.value) || undefined)}
-                    />
-                  </FormField>
-
-                  <FormField label="Longitude">
-                    <Input
-                      type="number"
-                      step="any"
-                      placeholder="-74.0060"
-                      value={location.geo_longitude || ''}
-                      onChange={(e) => updateLocation(index, 'geo_longitude', parseFloat(e.target.value) || undefined)}
                     />
                   </FormField>
                 </div>

@@ -51,7 +51,7 @@ async function sendEmail(token: string, profileData: any): Promise<void> {
     </ul>
 
     <h3>Primary Location</h3>
-    <p>${(profileData.locations || [])[0] ? `${(profileData.locations[0].address_street || '')} ${(profileData.locations[0].address_city || '')}, ${(profileData.locations[0].address_state || '')} ${(profileData.locations[0].address_postal_code || '')}` : 'Not provided'}</p>
+    <p>${(profileData.locations || [])[0] ? `${(profileData.locations[0].street || '')} ${(profileData.locations[0].city || '')}, ${(profileData.locations[0].state || '')} ${(profileData.locations[0].postal_code || '')}` : 'Not provided'}</p>
 
     <h3>Description</h3>
     <p><strong>Short:</strong> ${profileData.short_description || "N/A"}</p>

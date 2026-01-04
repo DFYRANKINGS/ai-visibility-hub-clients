@@ -18,11 +18,9 @@ const emptyProduct: Product = {
   name: '',
   short_description: '',
   description: '',
-  price: 0,
   features: [],
   sku: '',
   brand: '',
-  offers_price_currency: 'USD',
 };
 
 export function ProductsStep({ products, onChange }: ProductsStepProps) {
@@ -70,18 +68,11 @@ export function ProductsStep({ products, onChange }: ProductsStepProps) {
               <span className="font-medium text-foreground">
                 {product.name || `Product ${index + 1}`}
               </span>
-              <div className="flex items-center gap-2">
-                {product.price > 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    ${product.price}
-                  </span>
-                )}
-                {expandedIndex === index ? (
-                  <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                )}
-              </div>
+              {expandedIndex === index ? (
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              )}
             </button>
             
             <div className={cn(
@@ -103,25 +94,6 @@ export function ProductsStep({ products, onChange }: ProductsStepProps) {
                       placeholder="Brand Name"
                       value={product.brand}
                       onChange={(e) => updateProduct(index, 'brand', e.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="Price">
-                    <Input
-                      type="number"
-                      placeholder="99.99"
-                      min="0"
-                      step="0.01"
-                      value={product.price || ''}
-                      onChange={(e) => updateProduct(index, 'price', parseFloat(e.target.value) || 0)}
-                    />
-                  </FormField>
-
-                  <FormField label="Currency">
-                    <Input
-                      placeholder="USD"
-                      value={product.offers_price_currency}
-                      onChange={(e) => updateProduct(index, 'offers_price_currency', e.target.value)}
                     />
                   </FormField>
 
