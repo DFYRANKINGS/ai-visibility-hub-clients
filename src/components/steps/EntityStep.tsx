@@ -116,46 +116,7 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
         </div>
       </FormCard>
 
-      <FormCard 
-        title="Address" 
-        description="Your primary business location."
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField label="Street Address" className="md:col-span-2">
-            <Input
-              placeholder="123 Main Street, Suite 100"
-              value={data.address_street || ''}
-              onChange={(e) => handleChange('address_street', e.target.value)}
-            />
-          </FormField>
-
-          <FormField label="City">
-            <Input
-              placeholder="New York"
-              value={data.address_city || ''}
-              onChange={(e) => handleChange('address_city', e.target.value)}
-            />
-          </FormField>
-
-          <FormField label="State">
-            <Input
-              placeholder="NY"
-              value={data.address_state || ''}
-              onChange={(e) => handleChange('address_state', e.target.value)}
-            />
-          </FormField>
-
-          <FormField label="Postal Code">
-            <Input
-              placeholder="10001"
-              value={data.address_postal_code || ''}
-              onChange={(e) => handleChange('address_postal_code', e.target.value)}
-            />
-          </FormField>
-        </div>
-      </FormCard>
-
-      <FormCard 
+      <FormCard
         title="Entity Linking" 
         description="Link your business profiles across major platforms."
       >

@@ -173,10 +173,6 @@ export interface ClientProfile {
   long_description?: string;
   hours?: string;
   team_size?: number;
-  address_street?: string;
-  address_city?: string;
-  address_state?: string;
-  address_postal_code?: string;
   phone?: string;
   email?: string;
   services?: Service[];  // business only
