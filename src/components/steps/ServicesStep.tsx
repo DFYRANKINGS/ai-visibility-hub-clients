@@ -19,7 +19,6 @@ const emptyService: Service = {
   title: '',
   category: '',
   description: '',
-  price_range: '',
   slug: '',
   featured: false,
 };
@@ -105,36 +104,11 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
                     />
                   </FormField>
 
-                  <FormField label="Price Range">
-                    <Input
-                      placeholder="$500 - $5,000"
-                      value={service.price_range}
-                      onChange={(e) => updateService(index, 'price_range', e.target.value)}
-                    />
-                  </FormField>
-
                   <FormField label="URL Slug">
                     <Input
                       placeholder="web-development"
                       value={service.slug}
                       onChange={(e) => updateService(index, 'slug', e.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="License Number">
-                    <Input
-                      placeholder="Optional"
-                      value={service.license_number || ''}
-                      onChange={(e) => updateService(index, 'license_number', e.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="Service Area (miles)">
-                    <Input
-                      type="number"
-                      placeholder="50"
-                      value={service.service_area_radius_miles || ''}
-                      onChange={(e) => updateService(index, 'service_area_radius_miles', parseInt(e.target.value) || undefined)}
                     />
                   </FormField>
                 </div>

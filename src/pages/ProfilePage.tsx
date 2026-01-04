@@ -88,13 +88,13 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     }
   };
 
-  // Services
-  addArraySheet('Services', ['Name', 'Description', 'Price'], data.services || [], 
-    (s) => [s.name || '', s.description || '', s.price || '']);
+  // Services (no pricing fields)
+  addArraySheet('Services', ['Name', 'Category', 'Description'], data.services || [], 
+    (s) => [s.title || s.name || '', s.category || '', s.description || '']);
 
-  // Products
-  addArraySheet('Products', ['Name', 'Description', 'Price', 'URL'], data.products || [],
-    (p) => [p.name || '', p.description || '', p.price || '', p.url || '']);
+  // Products (no pricing fields)
+  addArraySheet('Products', ['Name', 'Description', 'SKU', 'Brand'], data.products || [],
+    (p) => [p.name || '', p.description || '', p.sku || '', p.brand || '']);
 
   // FAQs
   addArraySheet('FAQs', ['Question', 'Answer'], data.faqs || [],
@@ -108,9 +108,9 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
   addArraySheet('Reviews', ['Author', 'Rating', 'Review Text', 'Date', 'Source'], data.reviews || [],
     (r) => [r.author || '', r.rating || '', r.review_text || '', r.date || '', r.source || '']);
 
-  // Locations
+  // Locations (use canonical field names: street, city, state, postal_code)
   addArraySheet('Locations', ['Name', 'Street', 'City', 'State', 'Postal Code', 'Phone'], data.locations || [],
-    (l) => [l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '']);
+    (l) => [l.location_name || l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '']);
 
   // Team Members
   addArraySheet('Team Members', ['Name', 'Title', 'Bio', 'Email', 'Phone'], data.team_members || [],
