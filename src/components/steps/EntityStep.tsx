@@ -51,29 +51,56 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             <Input
               type="url"
               placeholder="https://www.example.com"
-              value={data.business_url || ''}
-              onChange={(e) => handleChange('business_url', e.target.value)}
+              value={data.main_website_url || ''}
+              onChange={(e) => handleChange('main_website_url', e.target.value)}
             />
           </FormField>
 
-          <FormField label="Email">
+          <FormField label="Logo URL">
+            <Input
+              type="url"
+              placeholder="https://..."
+              value={data.logo_url || ''}
+              onChange={(e) => handleChange('logo_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Year Established">
+            <Input
+              type="number"
+              placeholder="2010"
+              min="1800"
+              max={new Date().getFullYear()}
+              value={data.year_established || ''}
+              onChange={(e) => handleChange('year_established', parseInt(e.target.value) || '')}
+            />
+          </FormField>
+
+          <FormField label="Category">
+            <Input
+              placeholder="e.g., Technology, Healthcare"
+              value={data.category || ''}
+              onChange={(e) => handleChange('category', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Primary Email">
             <Input
               type="email"
               placeholder="contact@example.com"
-              value={data.email || ''}
-              onChange={(e) => handleChange('email', e.target.value)}
+              value={data.primary_email || ''}
+              onChange={(e) => handleChange('primary_email', e.target.value)}
             />
           </FormField>
 
-          <FormField label="Phone">
+          <FormField label="Primary Phone">
             <Input
               type="tel"
               placeholder="(555) 123-4567"
-              value={data.phone || ''}
-              onChange={(e) => handleChange('phone', e.target.value)}
+              value={data.primary_phone || ''}
+              onChange={(e) => handleChange('primary_phone', e.target.value)}
             />
           </FormField>
-
 
           <FormField label="Team Size">
             <Input
@@ -85,11 +112,19 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             />
           </FormField>
 
-          <FormField label="Business Hours" hint="e.g., Mon-Fri 9AM-5PM">
+          <FormField label="Open Hours" hint="e.g., Mon-Fri 9AM-5PM">
             <Input
               placeholder="Mon-Fri 9AM-5PM EST"
-              value={data.hours || ''}
-              onChange={(e) => handleChange('hours', e.target.value)}
+              value={data.open_hours || ''}
+              onChange={(e) => handleChange('open_hours', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Service Areas" className="md:col-span-2">
+            <Input
+              placeholder="e.g., New York, Los Angeles, Chicago"
+              value={data.service_areas || ''}
+              onChange={(e) => handleChange('service_areas', e.target.value)}
             />
           </FormField>
         </div>
@@ -124,9 +159,18 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
           <FormField label="Google Business Profile URL">
             <Input
               type="url"
+              placeholder="https://business.google.com/..."
+              value={data.google_business_url || ''}
+              onChange={(e) => handleChange('google_business_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Google Maps URL">
+            <Input
+              type="url"
               placeholder="https://maps.google.com/..."
-              value={data.gmb_url || ''}
-              onChange={(e) => handleChange('gmb_url', e.target.value)}
+              value={data.google_maps_url || ''}
+              onChange={(e) => handleChange('google_maps_url', e.target.value)}
             />
           </FormField>
 
@@ -157,6 +201,51 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             />
           </FormField>
 
+          <FormField label="LinkedIn URL">
+            <Input
+              type="url"
+              placeholder="https://www.linkedin.com/company/..."
+              value={data.linkedin_url || ''}
+              onChange={(e) => handleChange('linkedin_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Facebook URL">
+            <Input
+              type="url"
+              placeholder="https://www.facebook.com/..."
+              value={data.facebook_url || ''}
+              onChange={(e) => handleChange('facebook_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Instagram URL">
+            <Input
+              type="url"
+              placeholder="https://www.instagram.com/..."
+              value={data.instagram_url || ''}
+              onChange={(e) => handleChange('instagram_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="YouTube URL">
+            <Input
+              type="url"
+              placeholder="https://www.youtube.com/..."
+              value={data.youtube_url || ''}
+              onChange={(e) => handleChange('youtube_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Twitter/X URL">
+            <Input
+              type="url"
+              placeholder="https://www.twitter.com/..."
+              value={data.twitter_url || ''}
+              onChange={(e) => handleChange('twitter_url', e.target.value)}
+            />
+          </FormField>
+
           <FormField label="TikTok URL">
             <Input
               type="url"
@@ -172,6 +261,14 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
               placeholder="https://www.pinterest.com/..."
               value={data.pinterest_url || ''}
               onChange={(e) => handleChange('pinterest_url', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Other Profiles" className="md:col-span-2" hint="Comma-separated URLs">
+            <Input
+              placeholder="https://..., https://..."
+              value={data.other_profiles || ''}
+              onChange={(e) => handleChange('other_profiles', e.target.value)}
             />
           </FormField>
         </div>

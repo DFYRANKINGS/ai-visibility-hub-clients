@@ -13,22 +13,23 @@ interface LocationsStepProps {
 }
 
 const emptyLocation: Location = {
-  location_id: '',
   location_name: '',
-  street: '',
-  city: '',
-  state: '',
-  postal_code: '',
   phone: '',
-  hours: '',
+  email: '',
+  address_street: '',
+  address_city: '',
+  address_state: '',
+  address_postal: '',
+  service_areas: '',
+  open_hours: '',
+  gmb_url: '',
 };
 
 export function LocationsStep({ locations, onChange }: LocationsStepProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(locations.length > 0 ? 0 : null);
 
   const addLocation = () => {
-    const newLocation = { ...emptyLocation, location_id: `loc-${Date.now()}` };
-    onChange([...locations, newLocation]);
+    onChange([...locations, { ...emptyLocation }]);
     setExpandedIndex(locations.length);
   };
 
@@ -42,7 +43,7 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
     }
   };
 
-  const updateLocation = (index: number, field: keyof Location, value: string | number) => {
+  const updateLocation = (index: number, field: keyof Location, value: string) => {
     const updated = locations.map((loc, i) => 
       i === index ? { ...loc, [field]: value } : loc
     );
@@ -57,7 +58,7 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
       <div className="space-y-4">
         {locations.map((location, index) => (
           <div 
-            key={location.location_id || index} 
+            key={index} 
             className="border border-border rounded-xl overflow-hidden bg-background"
           >
             <button
@@ -80,7 +81,7 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
             
             <div className={cn(
               "transition-all duration-300 overflow-hidden",
-              expandedIndex === index ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+              expandedIndex === index ? "max-h-[900px] opacity-100" : "max-h-0 opacity-0"
             )}>
               <div className="p-4 pt-0 space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -101,43 +102,69 @@ export function LocationsStep({ locations, onChange }: LocationsStepProps) {
                     />
                   </FormField>
 
+                  <FormField label="Email">
+                    <Input
+                      type="email"
+                      placeholder="office@example.com"
+                      value={location.email || ''}
+                      onChange={(e) => updateLocation(index, 'email', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Google Business URL">
+                    <Input
+                      type="url"
+                      placeholder="https://business.google.com/..."
+                      value={location.gmb_url || ''}
+                      onChange={(e) => updateLocation(index, 'gmb_url', e.target.value)}
+                    />
+                  </FormField>
+
                   <FormField label="Street Address" className="md:col-span-2">
                     <Input
                       placeholder="123 Main Street"
-                      value={location.street}
-                      onChange={(e) => updateLocation(index, 'street', e.target.value)}
+                      value={location.address_street}
+                      onChange={(e) => updateLocation(index, 'address_street', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="City">
                     <Input
                       placeholder="New York"
-                      value={location.city}
-                      onChange={(e) => updateLocation(index, 'city', e.target.value)}
+                      value={location.address_city}
+                      onChange={(e) => updateLocation(index, 'address_city', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="State">
                     <Input
                       placeholder="NY"
-                      value={location.state}
-                      onChange={(e) => updateLocation(index, 'state', e.target.value)}
+                      value={location.address_state}
+                      onChange={(e) => updateLocation(index, 'address_state', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="Postal Code">
                     <Input
                       placeholder="10001"
-                      value={location.postal_code}
-                      onChange={(e) => updateLocation(index, 'postal_code', e.target.value)}
+                      value={location.address_postal}
+                      onChange={(e) => updateLocation(index, 'address_postal', e.target.value)}
                     />
                   </FormField>
 
-                  <FormField label="Hours">
+                  <FormField label="Open Hours">
                     <Input
                       placeholder="Mon-Fri 9AM-5PM"
-                      value={location.hours}
-                      onChange={(e) => updateLocation(index, 'hours', e.target.value)}
+                      value={location.open_hours}
+                      onChange={(e) => updateLocation(index, 'open_hours', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Service Areas" className="md:col-span-2">
+                    <Input
+                      placeholder="e.g., Manhattan, Brooklyn, Queens"
+                      value={location.service_areas || ''}
+                      onChange={(e) => updateLocation(index, 'service_areas', e.target.value)}
                     />
                   </FormField>
                 </div>

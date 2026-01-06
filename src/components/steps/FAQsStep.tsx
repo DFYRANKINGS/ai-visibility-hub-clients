@@ -14,10 +14,9 @@ interface FAQsStepProps {
 }
 
 const emptyFAQ: FAQ = {
-  keywords: '',
   question: '',
   answer: '',
-  slug: '',
+  url: '',
 };
 
 export function FAQsStep({ faqs, onChange }: FAQsStepProps) {
@@ -93,23 +92,14 @@ export function FAQsStep({ faqs, onChange }: FAQsStepProps) {
                   />
                 </FormField>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="Keywords" hint="Comma-separated">
-                    <Input
-                      placeholder="keyword1, keyword2"
-                      value={faq.keywords}
-                      onChange={(e) => updateFAQ(index, 'keywords', e.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="URL Slug">
-                    <Input
-                      placeholder="unique-service"
-                      value={faq.slug}
-                      onChange={(e) => updateFAQ(index, 'slug', e.target.value)}
-                    />
-                  </FormField>
-                </div>
+                <FormField label="URL" hint="Link to more information">
+                  <Input
+                    type="url"
+                    placeholder="https://..."
+                    value={faq.url || ''}
+                    onChange={(e) => updateFAQ(index, 'url', e.target.value)}
+                  />
+                </FormField>
 
                 <div className="flex justify-end pt-2">
                   <Button

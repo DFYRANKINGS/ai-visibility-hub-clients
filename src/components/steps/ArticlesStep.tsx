@@ -14,10 +14,9 @@ interface ArticlesStepProps {
 }
 
 const emptyArticle: Article = {
-  article_id: '',
   title: '',
   article_type: '',
-  article: '',
+  article_content: '',
   published_date: '',
   url: '',
   keywords: '',
@@ -28,8 +27,7 @@ export function ArticlesStep({ articles, onChange }: ArticlesStepProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(articles.length > 0 ? 0 : null);
 
   const addArticle = () => {
-    const newArticle = { ...emptyArticle, article_id: `art-${Date.now()}` };
-    onChange([...articles, newArticle]);
+    onChange([...articles, { ...emptyArticle }]);
     setExpandedIndex(articles.length);
   };
 
@@ -58,7 +56,7 @@ export function ArticlesStep({ articles, onChange }: ArticlesStepProps) {
       <div className="space-y-4">
         {articles.map((article, index) => (
           <div 
-            key={article.article_id || index} 
+            key={index} 
             className="border border-border rounded-xl overflow-hidden bg-background"
           >
             <button
@@ -142,8 +140,8 @@ export function ArticlesStep({ articles, onChange }: ArticlesStepProps) {
                 <FormField label="Article Content">
                   <Textarea
                     placeholder="Write or paste your article content..."
-                    value={article.article}
-                    onChange={(e) => updateArticle(index, 'article', e.target.value)}
+                    value={article.article_content}
+                    onChange={(e) => updateArticle(index, 'article_content', e.target.value)}
                     className="h-40"
                   />
                 </FormField>

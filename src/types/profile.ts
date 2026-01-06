@@ -1,14 +1,13 @@
+// Service (expertise_name sheet - Page 3)
 export interface Service {
-  service_id: string;
-  title: string;
-  category: string;
+  service_id?: string;
+  expertise_name: string;  // XLSX: expertise_name
   description: string;
-  slug: string;
-  featured: boolean;
 }
 
+// Product (not in XLSX Business template - Business vertical only)
 export interface Product {
-  product_id: string;
+  product_id?: string;
   name: string;
   short_description: string;
   description: string;
@@ -17,76 +16,83 @@ export interface Product {
   brand: string;
 }
 
+// FAQ (Page 9)
 export interface FAQ {
-  keywords: string;
   question: string;
   answer: string;
-  slug: string;
+  url?: string;  // XLSX uses url, not slug
 }
 
+// Article (Page 10)
 export interface Article {
-  article_id: string;
+  article_id?: string;
   title: string;
   article_type: string;
-  article: string;
+  article_content: string;  // XLSX: article_content (not article)
   published_date: string;
   url: string;
   keywords: string;
   slug: string;
 }
 
+// Review (Page 11)
 export interface Review {
-  customer_name: string;
   review_title: string;
-  review_body: string;
-  rating: number;
   date: string;
-  reviewer_profession?: string;
+  rating: number;
+  review: string;  // XLSX: review (not review_body)
 }
 
+// Location (Page 2)
 export interface Location {
-  location_id: string;
   location_name: string;
-  street: string;
-  city: string;
-  state: string;
-  postal_code: string;
   phone: string;
-  hours: string;
+  email?: string;  // XLSX has email
+  address_street: string;  // XLSX uses address_street
+  address_city: string;
+  address_state: string;
+  address_postal: string;  // XLSX: address_postal (not postal_code)
+  service_areas?: string;  // XLSX has service_areas
+  open_hours: string;  // XLSX: open_hours (not hours)
+  gmb_url?: string;  // XLSX has gmb_url per location
 }
 
+// TeamMember (Page 6 - General Business)
 export interface TeamMember {
-  member_name: string;
-  role: string;
-  bio: string;
+  full_name: string;  // XLSX: full_name (not member_name)
+  role_title: string;  // XLSX: role_title (not role)
   linkedin_url?: string;
   photo_url?: string;
   license_number?: string;
   npi_number?: string;
   bar_number?: string;
-  specialties?: string[]; // Per-member specialties (not global)
+  profile_links?: string;  // XLSX has profile_links
+  certifications?: string;  // XLSX has certifications
+  areas_of_expertise?: string;  // XLSX: areas_of_expertise
+  bio: string;
 }
 
+// Award (Page 14)
 export interface Award {
-  name: string;
+  award_name: string;  // XLSX: award_name (not name)
   issuer: string;
-  date_awarded: string;
-  award_url?: string;
+  date: string;  // XLSX: date (not date_awarded)
+  url?: string;  // XLSX: url (not award_url)
 }
 
+// MediaMention (Page 13)
 export interface MediaMention {
   title: string;
-  publications: string;
+  publication: string;  // XLSX: publication (singular)
   date: string;
   url?: string;
-  mention_type: string;
 }
 
+// CaseStudy (Page 12)
 export interface CaseStudy {
-  case_id: string;
   title: string;
   summary: string;
-  outcome_metrics: string;
+  outcome: string;  // XLSX: outcome (not outcome_metrics)
 }
 
 export interface Certification {
@@ -155,16 +161,36 @@ export interface ClientProfile {
   entity_id: string;
   owner_user_id: string;
   agency_user_id: string;
+  // Page 1 - Organization fields (XLSX alignment)
   business_name: string;
-  legal_name?: string;
-  business_url?: string;
+  main_website_url?: string;  // XLSX: main_website_url
+  logo_url?: string;  // XLSX has logo_url
+  year_established?: number;  // XLSX: year_established (maps to founding_year in DB)
+  team_size?: number;
   short_description?: string;
   long_description?: string;
-  hours?: string;
-  team_size?: number;
-  phone?: string;
-  email?: string;
-  services?: Service[];  // business only
+  category?: string;  // XLSX has category
+  // Entity Linking URLs (XLSX Page 1)
+  google_business_url?: string;  // XLSX: google_business_url
+  google_maps_url?: string;  // XLSX has google_maps_url
+  apple_maps_url?: string;
+  yelp_url?: string;
+  bbb_url?: string;
+  linkedin_url?: string;  // XLSX has linkedin_url
+  facebook_url?: string;  // XLSX has facebook_url
+  instagram_url?: string;  // XLSX has instagram_url
+  youtube_url?: string;  // XLSX has youtube_url
+  twitter_url?: string;  // XLSX has twitter_url
+  tiktok_url?: string;
+  pinterest_url?: string;
+  other_profiles?: string;  // XLSX: other_profiles
+  // Contact info
+  primary_phone?: string;  // XLSX: primary_phone
+  primary_email?: string;  // XLSX: primary_email
+  open_hours?: string;  // XLSX: open_hours
+  service_areas?: string;  // XLSX: service_areas
+  // JSONB arrays
+  services?: Service[];  // business only (expertise)
   products?: Product[];
   faqs?: FAQ[];
   articles?: Article[];
@@ -187,13 +213,6 @@ export interface ClientProfile {
   // Vertical-specific profiles (credentials only, no arrays)
   legal_profile?: LegalProfile;
   medical_profile?: MedicalProfile;
-  // Entity Linking URLs
-  gmb_url?: string;
-  apple_maps_url?: string;
-  yelp_url?: string;
-  bbb_url?: string;
-  tiktok_url?: string;
-  pinterest_url?: string;
 }
 
 export type FormStep = 
