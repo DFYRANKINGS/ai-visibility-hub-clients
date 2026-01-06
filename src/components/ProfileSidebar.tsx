@@ -1,6 +1,6 @@
 import { FormStep, BusinessVertical } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Scale, Stethoscope, Link } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Scale, Stethoscope, Link, Users } from 'lucide-react';
 
 interface ProfileSidebarProps {
   currentStep: FormStep;
@@ -10,7 +10,8 @@ interface ProfileSidebarProps {
 }
 
 const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; description: string; icon: React.ElementType }[] => [
-  { id: 'entity', label: 'Organization', description: 'Business info, locations & team', icon: Building2 },
+  { id: 'entity', label: 'Organization', description: 'Business info & locations', icon: Building2 },
+  { id: 'team', label: vertical === 'legal' ? 'Lawyers' : vertical === 'medical' ? 'Healthcare Providers' : 'Associates', description: 'Team members', icon: Users },
   { id: 'entity_linking', label: 'Entity Linking', description: 'External profiles & links', icon: Link },
   { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
   { 

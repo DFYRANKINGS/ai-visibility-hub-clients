@@ -1,6 +1,6 @@
 import { FormStep, BusinessVertical } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, BadgeCheck, Scale, Stethoscope, Link } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, BadgeCheck, Scale, Stethoscope, Link, Users } from 'lucide-react';
 
 interface FormProgressProps {
   currentStep: FormStep;
@@ -10,6 +10,7 @@ interface FormProgressProps {
 
 const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; icon: React.ElementType }[] => [
   { id: 'entity', label: 'Organization', icon: Building2 },
+  { id: 'team', label: vertical === 'legal' ? 'Lawyers' : vertical === 'medical' ? 'Healthcare Providers' : 'Associates', icon: Users },
   { id: 'entity_linking', label: 'Entity Linking', icon: Link },
   { id: 'credentials', label: 'Credentials', icon: BadgeCheck },
   { id: 'services', label: vertical === 'legal' ? 'Practice Areas' : vertical === 'medical' ? 'Specialties' : 'Services', icon: vertical === 'legal' ? Scale : vertical === 'medical' ? Stethoscope : Briefcase },
