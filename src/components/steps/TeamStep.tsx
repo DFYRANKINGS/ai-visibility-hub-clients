@@ -14,8 +14,8 @@ interface TeamStepProps {
 }
 
 const emptyMember: TeamMember = {
-  member_name: '',
-  role: '',
+  full_name: '',
+  role_title: '',
   bio: '',
 };
 
@@ -37,38 +37,11 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
     }
   };
 
-  const updateMember = (index: number, field: keyof TeamMember, value: string | string[]) => {
+  const updateMember = (index: number, field: keyof TeamMember, value: string) => {
     const updated = teamMembers.map((member, i) => 
       i === index ? { ...member, [field]: value } : member
     );
     onChange(updated);
-  };
-
-  // Handle specialties as comma-separated input, parse to array onBlur
-  const handleSpecialtiesChange = (index: number, value: string) => {
-    // Store raw string while typing
-    const updated = teamMembers.map((member, i) => 
-      i === index ? { ...member, _specialtiesRaw: value } : member
-    );
-    onChange(updated);
-  };
-
-  const handleSpecialtiesBlur = (index: number) => {
-    const member = teamMembers[index];
-    const raw = (member as any)._specialtiesRaw ?? member.specialties?.join(', ') ?? '';
-    const parsed = raw.split(',').map((v: string) => v.trim()).filter(Boolean);
-    const updated = teamMembers.map((m, i) => {
-      if (i !== index) return m;
-      const { _specialtiesRaw, ...rest } = m as any;
-      return { ...rest, specialties: parsed };
-    });
-    onChange(updated);
-  };
-
-  const getSpecialtiesDisplayValue = (member: TeamMember) => {
-    const raw = (member as any)._specialtiesRaw;
-    if (raw !== undefined) return raw;
-    return member.specialties?.join(', ') ?? '';
   };
 
   return (
@@ -93,10 +66,10 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
                 </div>
                 <div>
                   <span className="font-medium text-foreground block">
-                    {member.member_name || `Team Member ${index + 1}`}
+                    {member.full_name || `Team Member ${index + 1}`}
                   </span>
-                  {member.role && (
-                    <span className="text-sm text-muted-foreground">{member.role}</span>
+                  {member.role_title && (
+                    <span className="text-sm text-muted-foreground">{member.role_title}</span>
                   )}
                 </div>
               </div>
@@ -109,23 +82,23 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
             
             <div className={cn(
               "transition-all duration-300 overflow-hidden",
-              expandedIndex === index ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+              expandedIndex === index ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
             )}>
               <div className="p-4 pt-0 space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="Name" required>
+                  <FormField label="Full Name" required>
                     <Input
                       placeholder="John Smith"
-                      value={member.member_name}
-                      onChange={(e) => updateMember(index, 'member_name', e.target.value)}
+                      value={member.full_name}
+                      onChange={(e) => updateMember(index, 'full_name', e.target.value)}
                     />
                   </FormField>
 
                   <FormField label="Role/Title" required>
                     <Input
                       placeholder="CEO & Founder"
-                      value={member.role}
-                      onChange={(e) => updateMember(index, 'role', e.target.value)}
+                      value={member.role_title}
+                      onChange={(e) => updateMember(index, 'role_title', e.target.value)}
                     />
                   </FormField>
 
@@ -171,12 +144,27 @@ export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
                     />
                   </FormField>
 
-                  <FormField label="Specialties" hint="Comma-separated">
+                  <FormField label="Areas of Expertise" hint="Comma-separated">
                     <Input
                       placeholder="e.g., Family Law, Personal Injury"
-                      value={getSpecialtiesDisplayValue(member)}
-                      onChange={(e) => handleSpecialtiesChange(index, e.target.value)}
-                      onBlur={() => handleSpecialtiesBlur(index)}
+                      value={member.areas_of_expertise || ''}
+                      onChange={(e) => updateMember(index, 'areas_of_expertise', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Profile Links" hint="Comma-separated URLs">
+                    <Input
+                      placeholder="https://..., https://..."
+                      value={member.profile_links || ''}
+                      onChange={(e) => updateMember(index, 'profile_links', e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Certifications" hint="Comma-separated">
+                    <Input
+                      placeholder="e.g., PMP, AWS Certified"
+                      value={member.certifications || ''}
+                      onChange={(e) => updateMember(index, 'certifications', e.target.value)}
                     />
                   </FormField>
                 </div>
