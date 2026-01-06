@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ClientProfile, Certification, Accreditation, InsuranceAccepted, LegalProfile, MedicalProfile } from '@/types/profile';
+import { ClientProfile, Certification, Accreditation, LegalProfile, MedicalProfile } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, ChevronDown, ChevronUp, BadgeCheck, Shield, Heart, Scale, Stethoscope } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, BadgeCheck, Shield, Scale, Stethoscope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CredentialsStepProps {
@@ -14,36 +14,26 @@ interface CredentialsStepProps {
 
 const emptyCertification: Certification = { name: '', issuing_body: '' };
 const emptyAccreditation: Accreditation = { name: '', accrediting_body: '' };
-const emptyInsurance: InsuranceAccepted = { name: '' };
 
 const parseCommaList = (raw: string) =>
-  raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  raw.split(',').map((s) => s.trim()).filter(Boolean);
 
 export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
   const [expandedCert, setExpandedCert] = useState<number | null>(0);
   const [expandedAccred, setExpandedAccred] = useState<number | null>(null);
-  const [expandedIns, setExpandedIns] = useState<number | null>(null);
 
   const certifications = data.certifications || [];
   const accreditations = data.accreditations || [];
-  const insuranceAccepted = data.insurance_accepted || [];
   const vertical = data.vertical || 'general';
   const legalProfile = data.legal_profile || {};
   const medicalProfile = data.medical_profile || {};
 
-  // Keep free-typing UX for comma-separated fields; parse only on blur.
-  // Note: practice_areas is now managed in LegalPracticeAreasStep as PracticeArea[]
   const [barNumbersText, setBarNumbersText] = useState(legalProfile.bar_numbers?.join(', ') || '');
   const [jurisdictionsText, setJurisdictionsText] = useState(legalProfile.jurisdictions?.join(', ') || '');
   const [courtAdmissionsText, setCourtAdmissionsText] = useState(legalProfile.court_admissions?.join(', ') || '');
-  // Note: specialties is now managed in MedicalSpecialtiesStep as MedicalSpecialty[]
   const [hospitalAffiliationsText, setHospitalAffiliationsText] = useState(medicalProfile.hospital_affiliations?.join(', ') || '');
   const [boardCertificationsText, setBoardCertificationsText] = useState(medicalProfile.board_certifications?.join(', ') || '');
 
-  // Sync local text state when data changes from parent
   useEffect(() => {
     setBarNumbersText(legalProfile.bar_numbers?.join(', ') || '');
     setJurisdictionsText(legalProfile.jurisdictions?.join(', ') || '');
@@ -57,7 +47,6 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
 
   const updateCertifications = (certs: Certification[]) => onChange({ ...data, certifications: certs });
   const updateAccreditations = (accreds: Accreditation[]) => onChange({ ...data, accreditations: accreds });
-  const updateInsurance = (ins: InsuranceAccepted[]) => onChange({ ...data, insurance_accepted: ins });
   const updateLegalProfile = (profile: LegalProfile) => onChange({ ...data, legal_profile: profile });
   const updateMedicalProfile = (profile: MedicalProfile) => onChange({ ...data, medical_profile: profile });
 
@@ -73,21 +62,11 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
     updateAccreditations(accreditations.map((a, i) => i === index ? { ...a, [field]: value } : a));
   };
 
-  const addInsurance = () => { updateInsurance([...insuranceAccepted, { ...emptyInsurance }]); setExpandedIns(insuranceAccepted.length); };
-  const removeInsurance = (index: number) => updateInsurance(insuranceAccepted.filter((_, i) => i !== index));
-  const updateIns = (index: number, field: keyof InsuranceAccepted, value: string) => {
-    updateInsurance(insuranceAccepted.map((ins, i) => i === index ? { ...ins, [field]: value } : ins));
-  };
-
   return (
     <div className="space-y-6">
-      {/* Show current vertical selection */}
       <div className="bg-muted/50 rounded-lg p-3 text-sm">
         <span className="text-muted-foreground">Business Vertical: </span>
-        <span className="font-medium text-foreground capitalize">{vertical === 'general' ? 'General Business' : vertical === 'legal' ? 'Legal Services' : vertical === 'medical' ? 'Medical/Healthcare' : vertical}</span>
-        {vertical !== 'general' && (
-          <span className="text-muted-foreground ml-2">— Scroll down for {vertical}-specific fields</span>
-        )}
+        <span className="font-medium text-foreground capitalize">{vertical === 'general' ? 'General Business' : vertical === 'legal' ? 'Legal Services' : 'Medical/Healthcare'}</span>
       </div>
 
       {/* Certifications */}
@@ -110,13 +89,10 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                       <Input placeholder="e.g., ISO 9001" value={cert.name} onChange={(e) => updateCert(index, 'name', e.target.value)} />
                     </FormField>
                     <FormField label="Issuing Body">
-                      <Input placeholder="e.g., ISO" value={cert.issuing_body} onChange={(e) => updateCert(index, 'issuing_body', e.target.value)} />
+                      <Input placeholder="e.g., ISO" value={cert.issuing_body || ''} onChange={(e) => updateCert(index, 'issuing_body', e.target.value)} />
                     </FormField>
                     <FormField label="Date Obtained">
                       <Input type="date" value={cert.date_obtained || ''} onChange={(e) => updateCert(index, 'date_obtained', e.target.value)} />
-                    </FormField>
-                    <FormField label="Expiration Date">
-                      <Input type="date" value={cert.expiration_date || ''} onChange={(e) => updateCert(index, 'expiration_date', e.target.value)} />
                     </FormField>
                     <FormField label="Credential ID">
                       <Input placeholder="Optional" value={cert.credential_id || ''} onChange={(e) => updateCert(index, 'credential_id', e.target.value)} />
@@ -157,13 +133,10 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                       <Input placeholder="e.g., AAAHC" value={accred.name} onChange={(e) => updateAccred(index, 'name', e.target.value)} />
                     </FormField>
                     <FormField label="Accrediting Body">
-                      <Input placeholder="e.g., AAAHC" value={accred.accrediting_body} onChange={(e) => updateAccred(index, 'accrediting_body', e.target.value)} />
+                      <Input placeholder="e.g., AAAHC" value={accred.accrediting_body || ''} onChange={(e) => updateAccred(index, 'accrediting_body', e.target.value)} />
                     </FormField>
                     <FormField label="Date Obtained">
                       <Input type="date" value={accred.date_obtained || ''} onChange={(e) => updateAccred(index, 'date_obtained', e.target.value)} />
-                    </FormField>
-                    <FormField label="Expiration Date">
-                      <Input type="date" value={accred.expiration_date || ''} onChange={(e) => updateAccred(index, 'expiration_date', e.target.value)} />
                     </FormField>
                   </div>
                   <div className="flex justify-end">
@@ -181,121 +154,103 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
         </div>
       </FormCard>
 
-      {/* Insurance Accepted */}
-      <FormCard title="Insurance Accepted" description="Insurance plans you accept.">
-        <div className="space-y-4">
-          {insuranceAccepted.map((ins, index) => (
-            <div key={index} className="border border-border rounded-xl overflow-hidden bg-background">
-              <button type="button" onClick={() => setExpandedIns(expandedIns === index ? null : index)}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  <span className="font-medium text-foreground">{ins.name || `Insurance ${index + 1}`}</span>
-                </div>
-                {expandedIns === index ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
-              </button>
-              <div className={cn("transition-all duration-300 overflow-hidden", expandedIns === index ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0")}>
-                <div className="p-4 pt-0 space-y-4 border-t border-border">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField label="Insurance Name" required>
-                      <Input placeholder="e.g., Blue Cross Blue Shield" value={ins.name} onChange={(e) => updateIns(index, 'name', e.target.value)} />
-                    </FormField>
-                    <FormField label="Plan Types">
-                      <Input placeholder="e.g., PPO, HMO" value={ins.plan_types || ''} onChange={(e) => updateIns(index, 'plan_types', e.target.value)} />
-                    </FormField>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeInsurance(index)} className="text-destructive hover:text-destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-          <Button type="button" variant="outline" onClick={addInsurance} className="w-full h-12 border-dashed">
-            <Plus className="w-5 h-5 mr-2" />Add Insurance
-          </Button>
+      {/* Entity Linking */}
+      <FormCard title="Entity Linking" description="Link your business profiles across major platforms.">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Google Business Profile URL">
+            <Input type="url" placeholder="https://business.google.com/..." value={data.google_business_url || ''} onChange={(e) => onChange({ ...data, google_business_url: e.target.value })} />
+          </FormField>
+          <FormField label="Google Maps URL">
+            <Input type="url" placeholder="https://maps.google.com/..." value={data.google_maps_url || ''} onChange={(e) => onChange({ ...data, google_maps_url: e.target.value })} />
+          </FormField>
+          <FormField label="Apple Maps URL">
+            <Input type="url" placeholder="https://maps.apple.com/..." value={data.apple_maps_url || ''} onChange={(e) => onChange({ ...data, apple_maps_url: e.target.value })} />
+          </FormField>
+          <FormField label="Yelp URL">
+            <Input type="url" placeholder="https://www.yelp.com/biz/..." value={data.yelp_url || ''} onChange={(e) => onChange({ ...data, yelp_url: e.target.value })} />
+          </FormField>
+          <FormField label="BBB URL">
+            <Input type="url" placeholder="https://www.bbb.org/..." value={data.bbb_url || ''} onChange={(e) => onChange({ ...data, bbb_url: e.target.value })} />
+          </FormField>
+          <FormField label="LinkedIn URL">
+            <Input type="url" placeholder="https://www.linkedin.com/company/..." value={data.linkedin_url || ''} onChange={(e) => onChange({ ...data, linkedin_url: e.target.value })} />
+          </FormField>
+          <FormField label="Facebook URL">
+            <Input type="url" placeholder="https://www.facebook.com/..." value={data.facebook_url || ''} onChange={(e) => onChange({ ...data, facebook_url: e.target.value })} />
+          </FormField>
+          <FormField label="Instagram URL">
+            <Input type="url" placeholder="https://www.instagram.com/..." value={data.instagram_url || ''} onChange={(e) => onChange({ ...data, instagram_url: e.target.value })} />
+          </FormField>
+          <FormField label="YouTube URL">
+            <Input type="url" placeholder="https://www.youtube.com/..." value={data.youtube_url || ''} onChange={(e) => onChange({ ...data, youtube_url: e.target.value })} />
+          </FormField>
+          <FormField label="Twitter/X URL">
+            <Input type="url" placeholder="https://www.twitter.com/..." value={data.twitter_url || ''} onChange={(e) => onChange({ ...data, twitter_url: e.target.value })} />
+          </FormField>
+          <FormField label="TikTok URL">
+            <Input type="url" placeholder="https://www.tiktok.com/@..." value={data.tiktok_url || ''} onChange={(e) => onChange({ ...data, tiktok_url: e.target.value })} />
+          </FormField>
+          <FormField label="Pinterest URL">
+            <Input type="url" placeholder="https://www.pinterest.com/..." value={data.pinterest_url || ''} onChange={(e) => onChange({ ...data, pinterest_url: e.target.value })} />
+          </FormField>
+          <FormField label="Other Profile URLs" className="md:col-span-2" hint="Comma-separated URLs">
+            <Input
+              placeholder="https://..., https://..."
+              value={(data.other_profiles || []).map(p => p.url).join(', ')}
+              onChange={(e) => {
+                const urls = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                onChange({ ...data, other_profiles: urls.map(url => ({ url })) });
+              }}
+            />
+          </FormField>
         </div>
       </FormCard>
 
-      {/* Legal Profile - only shown when vertical is 'legal' */}
+      {/* Legal Profile */}
       {vertical === 'legal' && (
         <FormCard title="Legal Profile" description="Legal-specific credentials and practice information.">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Scale className="w-4 h-4" />
-              <span>Legal Services specific fields</span>
+              <Scale className="w-4 h-4" /><span>Legal Services specific fields</span>
             </div>
             <FormField label="Bar Numbers" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., NY12345, CA67890"
-                value={barNumbersText}
-                onChange={(e) => setBarNumbersText(e.target.value)}
-                onBlur={() => updateLegalProfile({ ...legalProfile, bar_numbers: parseCommaList(barNumbersText) })}
-              />
+              <Input placeholder="e.g., NY12345, CA67890" value={barNumbersText} onChange={(e) => setBarNumbersText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, bar_numbers: parseCommaList(barNumbersText) })} />
             </FormField>
-            {/* Practice Areas is now managed in LegalPracticeAreasStep */}
             <FormField label="Jurisdictions" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., New York, California"
-                value={jurisdictionsText}
-                onChange={(e) => setJurisdictionsText(e.target.value)}
-                onBlur={() => updateLegalProfile({ ...legalProfile, jurisdictions: parseCommaList(jurisdictionsText) })}
-              />
+              <Input placeholder="e.g., New York, California" value={jurisdictionsText} onChange={(e) => setJurisdictionsText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, jurisdictions: parseCommaList(jurisdictionsText) })} />
             </FormField>
             <FormField label="Court Admissions" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., U.S. Supreme Court, NY State Courts"
-                value={courtAdmissionsText}
-                onChange={(e) => setCourtAdmissionsText(e.target.value)}
-                onBlur={() => updateLegalProfile({ ...legalProfile, court_admissions: parseCommaList(courtAdmissionsText) })}
-              />
+              <Input placeholder="e.g., U.S. Supreme Court, NY State Courts" value={courtAdmissionsText} onChange={(e) => setCourtAdmissionsText(e.target.value)}
+                onBlur={() => updateLegalProfile({ ...legalProfile, court_admissions: parseCommaList(courtAdmissionsText) })} />
             </FormField>
           </div>
         </FormCard>
       )}
 
-      {/* Medical Profile - only shown when vertical is 'medical' */}
+      {/* Medical Profile */}
       {vertical === 'medical' && (
         <FormCard title="Medical Profile" description="Medical-specific credentials and practice information.">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Stethoscope className="w-4 h-4" />
-              <span>Healthcare specific fields</span>
+              <Stethoscope className="w-4 h-4" /><span>Healthcare specific fields</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="NPI Number">
-                <Input
-                  placeholder="e.g., 1234567890"
-                  value={medicalProfile.npi_number || ''}
-                  onChange={(e) => updateMedicalProfile({ ...medicalProfile, npi_number: e.target.value })}
-                />
+                <Input placeholder="e.g., 1234567890" value={medicalProfile.npi_number || ''} onChange={(e) => updateMedicalProfile({ ...medicalProfile, npi_number: e.target.value })} />
               </FormField>
               <FormField label="Medical License">
-                <Input
-                  placeholder="e.g., MD12345"
-                  value={medicalProfile.medical_license || ''}
-                  onChange={(e) => updateMedicalProfile({ ...medicalProfile, medical_license: e.target.value })}
-                />
+                <Input placeholder="e.g., MD12345" value={medicalProfile.medical_license || ''} onChange={(e) => updateMedicalProfile({ ...medicalProfile, medical_license: e.target.value })} />
               </FormField>
             </div>
-            {/* Note: Specialties is now managed in MedicalSpecialtiesStep */}
             <FormField label="Hospital Affiliations" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., Mayo Clinic, Cleveland Clinic"
-                value={hospitalAffiliationsText}
-                onChange={(e) => setHospitalAffiliationsText(e.target.value)}
-                onBlur={() => updateMedicalProfile({ ...medicalProfile, hospital_affiliations: parseCommaList(hospitalAffiliationsText) })}
-              />
+              <Input placeholder="e.g., Mayo Clinic, Cleveland Clinic" value={hospitalAffiliationsText} onChange={(e) => setHospitalAffiliationsText(e.target.value)}
+                onBlur={() => updateMedicalProfile({ ...medicalProfile, hospital_affiliations: parseCommaList(hospitalAffiliationsText) })} />
             </FormField>
             <FormField label="Board Certifications" hint="Comma-separated list">
-              <Input
-                placeholder="e.g., American Board of Internal Medicine"
-                value={boardCertificationsText}
-                onChange={(e) => setBoardCertificationsText(e.target.value)}
-                onBlur={() => updateMedicalProfile({ ...medicalProfile, board_certifications: parseCommaList(boardCertificationsText) })}
-              />
+              <Input placeholder="e.g., American Board of Internal Medicine" value={boardCertificationsText} onChange={(e) => setBoardCertificationsText(e.target.value)}
+                onBlur={() => updateMedicalProfile({ ...medicalProfile, board_certifications: parseCommaList(boardCertificationsText) })} />
             </FormField>
           </div>
         </FormCard>
