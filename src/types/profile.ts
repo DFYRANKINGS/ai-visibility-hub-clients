@@ -53,6 +53,11 @@ export interface Location {
 }
 
 // TeamMember (team_members column - label changes per vertical but same DB column)
+export interface TeamMemberProfileUrl {
+  platform?: string;
+  url: string;
+}
+
 export interface TeamMember {
   member_name?: string;
   name?: string;
@@ -61,10 +66,10 @@ export interface TeamMember {
   bio?: string;
   linkedin_url?: string;
   photo_url?: string;
-  license_number?: string;
   npi_number?: string;
   bar_number?: string;
   specialties?: string[];
+  profile_urls?: TeamMemberProfileUrl[];
 }
 
 // Award
