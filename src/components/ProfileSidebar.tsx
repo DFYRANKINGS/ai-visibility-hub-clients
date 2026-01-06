@@ -1,6 +1,6 @@
 import { FormStep, BusinessVertical } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Scale, Stethoscope } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Scale, Stethoscope, Link } from 'lucide-react';
 
 interface ProfileSidebarProps {
   currentStep: FormStep;
@@ -10,7 +10,8 @@ interface ProfileSidebarProps {
 }
 
 const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; description: string; icon: React.ElementType }[] => [
-  { id: 'entity', label: 'Organization', description: 'Basic business information', icon: Building2 },
+  { id: 'entity', label: 'Organization', description: 'Business info, locations & team', icon: Building2 },
+  { id: 'entity_linking', label: 'Entity Linking', description: 'External profiles & links', icon: Link },
   { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
   { 
     id: 'services', 
@@ -19,10 +20,8 @@ const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; d
     icon: vertical === 'legal' ? Scale : vertical === 'medical' ? Stethoscope : Briefcase 
   },
   { id: 'faqs', label: 'FAQs', description: 'Common questions', icon: HelpCircle },
-  { id: 'articles', label: 'Help Articles', description: 'Help content', icon: FileText },
+  { id: 'help_articles', label: 'Help Articles', description: 'Help content', icon: FileText },
   { id: 'reviews', label: 'Reviews', description: 'Customer testimonials', icon: Star },
-  { id: 'locations', label: 'Locations', description: 'Physical addresses', icon: MapPin },
-  { id: 'team', label: vertical === 'legal' ? 'Lawyers' : vertical === 'medical' ? 'Providers' : 'Associates', description: 'Team members', icon: Users },
   { id: 'awards', label: 'Awards', description: 'Recognition & honors', icon: Award },
   { id: 'media', label: 'Media', description: 'Press mentions', icon: Newspaper },
   { id: 'cases', label: 'Case Studies', description: 'Success stories', icon: FolderKanban },

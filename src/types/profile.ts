@@ -221,14 +221,13 @@ export interface ClientProfile {
 }
 
 export type FormStep = 
-  | 'entity'
+  | 'entity'           // Organization (includes locations & team)
+  | 'entity_linking'   // External profiles & links
   | 'credentials'
   | 'services'
   | 'faqs'
-  | 'articles'
+  | 'help_articles'
   | 'reviews'
-  | 'locations'
-  | 'team'
   | 'awards'
   | 'media'
   | 'cases'
