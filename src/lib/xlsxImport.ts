@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { ClientProfile } from '@/types/profile';
+import { ClientProfile, TeamMemberProfileUrl, TeamMemberCertification } from '@/types/profile';
 
 type SheetMapper<T> = {
   sheetName: string;
@@ -9,38 +9,58 @@ type SheetMapper<T> = {
 
 const parseOrganizationSheet = (sheet: XLSX.WorkSheet): Partial<ClientProfile> => {
   const result: Partial<ClientProfile> = {};
-  const data = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+  const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
   
-  const fieldMap: Record<string, keyof ClientProfile> = {
-    'Business Name': 'business_name',
-    'Business Vertical': 'vertical',
-    'Business URL': 'business_url',
-    'Short Description': 'short_description',
-    'Long Description': 'long_description',
-    'Team Size': 'team_size',
-    'Phone': 'phone',
-    'Email': 'email',
+  if (rows.length === 0) return result;
+  const row = rows[0]; // First data row contains the org info
+
+  const fieldMap: Record<string, { key: keyof ClientProfile; transform?: (val: any) => any }> = {
+    'business_name': { key: 'business_name' },
+    'main_website_url': { key: 'business_url' },
+    'logo_url': { key: 'logo_url' },
+    'year_established': { key: 'year_established' },
+    'team_size': { key: 'team_size' },
+    'short_description': { key: 'short_description' },
+    'long_description': { key: 'long_description' },
+    'category': { key: 'category' },
+    'google_business_url': { key: 'google_business_url' },
+    'google_maps_url': { key: 'google_maps_url' },
+    'apple_maps_url': { key: 'apple_maps_url' },
+    'yelp_url': { key: 'yelp_url' },
+    'bbb_url': { key: 'bbb_url' },
+    'linkedin_url': { key: 'linkedin_url' },
+    'facebook_url': { key: 'facebook_url' },
+    'instagram_url': { key: 'instagram_url' },
+    'youtube_url': { key: 'youtube_url' },
+    'twitter_url': { key: 'twitter_url' },
+    'tiktok_url': { key: 'tiktok_url' },
+    'pinterest_url': { key: 'pinterest_url' },
+    'other_profiles': { 
+      key: 'other_profiles', 
+      transform: (val: string) => val ? val.split(',').map(v => ({ url: v.trim() })).filter(p => p.url) : [] 
+    },
+    'primary_phone': { key: 'phone' },
+    'primary_email': { key: 'email' },
   };
 
-  for (const row of data) {
-    if (!row || row.length < 2) continue;
-    const label = String(row[0] || '').trim();
-    const value = row[1];
-    const fieldKey = fieldMap[label];
-    if (fieldKey && value !== undefined && value !== '') {
-      if (fieldKey === 'team_size') {
-        result[fieldKey] = parseInt(String(value), 10) || undefined;
-      } else if (fieldKey === 'vertical') {
-        const v = String(value).toLowerCase();
-        if (v === 'legal' || v === 'medical' || v === 'general') {
-          result[fieldKey] = v as any;
-        }
-      } else {
-        (result as any)[fieldKey] = String(value);
-      }
+  for (const [xlsxCol, mapping] of Object.entries(fieldMap)) {
+    const value = row[xlsxCol];
+    if (value !== undefined && value !== '') {
+      (result as any)[mapping.key] = mapping.transform ? mapping.transform(value) : String(value);
     }
   }
+
   return result;
+};
+
+const parseProfileLinks = (val: any): TeamMemberProfileUrl[] => {
+  if (!val) return [];
+  return String(val).split(',').map(v => ({ url: v.trim() })).filter(p => p.url);
+};
+
+const parseCertifications = (val: any): TeamMemberCertification[] => {
+  if (!val) return [];
+  return String(val).split(',').map(v => ({ name: v.trim(), issuing_body: '', date_obtained: '' })).filter(c => c.name);
 };
 
 const parseTabularSheet = <T>(sheet: XLSX.WorkSheet, rowMapper: (row: Record<string, any>) => T | null): T[] => {
@@ -49,29 +69,217 @@ const parseTabularSheet = <T>(sheet: XLSX.WorkSheet, rowMapper: (row: Record<str
 };
 
 const sheetMappers: SheetMapper<any>[] = [
-  { sheetName: 'Services', fieldName: 'services', rowMapper: (row) => ({ service_id: crypto.randomUUID(), title: row['Name'] || '', description: row['Description'] || '', category: row['Category'] || '' }) },
-  { sheetName: 'FAQs', fieldName: 'faqs', rowMapper: (row) => ({ question: row['Question'] || '', answer: row['Answer'] || '', keywords: row['Keywords'] || '' }) },
-  { sheetName: 'Help Articles', fieldName: 'help_articles', rowMapper: (row) => ({ article_id: crypto.randomUUID(), title: row['Title'] || '', url: row['URL'] || '', published_date: row['Date Published'] || '', article_content: row['Content'] || '' }) },
-  { sheetName: 'Reviews', fieldName: 'reviews', rowMapper: (row) => ({ customer_name: row['Author'] || '', review_body: row['Review Text'] || '', rating: parseInt(row['Rating']) || 5, date: row['Date'] || '' }) },
-  { sheetName: 'Locations', fieldName: 'locations', rowMapper: (row) => ({ location_id: crypto.randomUUID(), location_name: row['Name'] || '', street: row['Street'] || '', city: row['City'] || '', state: row['State'] || '', postal_code: row['Postal Code'] || '', phone: row['Phone'] || '', hours: row['Hours'] || '' }) },
-  { sheetName: 'Team Members', fieldName: 'team_members', rowMapper: (row) => ({ member_name: row['Name'] || '', role: row['Title'] || '', bio: row['Bio'] || '', specialties: row['Specialties'] ? String(row['Specialties']).split(',').map(s => s.trim()).filter(Boolean) : [] }) },
-  { sheetName: 'Awards', fieldName: 'awards', rowMapper: (row) => ({ name: row['Name'] || '', issuer: row['Issuer'] || '', date_awarded: row['Year'] || '' }) },
-  { sheetName: 'Media Mentions', fieldName: 'media_mentions', rowMapper: (row) => ({ title: row['Title'] || '', publications: row['Publication'] || '', date: row['Date'] || '', url: row['URL'] || '' }) },
-  { sheetName: 'Case Studies', fieldName: 'case_studies', rowMapper: (row) => ({ case_id: crypto.randomUUID(), title: row['Title'] || '', summary: row['Description'] || '', outcome_metrics: row['Outcome'] || '' }) },
-  { sheetName: 'Certifications', fieldName: 'certifications', rowMapper: (row) => ({ name: row['Name'] || '', issuing_body: row['Issuer'] || '', date_obtained: row['Year'] || '' }) },
-  { sheetName: 'Accreditations', fieldName: 'accreditations', rowMapper: (row) => ({ name: row['Name'] || '', accrediting_body: row['Issuer'] || '', date_obtained: row['Year'] || '' }) },
-  { sheetName: 'Practice Areas', fieldName: 'practice_areas', rowMapper: (row) => ({ practice_area_id: crypto.randomUUID(), name: row['Name'] || '', case_types: row['Case Types'] || '', jurisdiction: row['Jurisdiction'] || '', description: row['Description'] || '' }) },
-  { sheetName: 'Medical Specialties', fieldName: 'medical_specialties', rowMapper: (row) => ({ specialty_id: crypto.randomUUID(), name: row['Name'] || '', conditions_treated: row['Conditions Treated'] || '', procedures_offered: row['Procedures Offered'] || '', description: row['Description'] || '' }) },
+  // Locations (Page 2)
+  { 
+    sheetName: 'Locations', 
+    fieldName: 'locations', 
+    rowMapper: (row) => ({ 
+      location_id: crypto.randomUUID(), 
+      location_name: row['location_name'] || '', 
+      street: row['address_street'] || '', 
+      city: row['address_city'] || '', 
+      state: row['address_state'] || '', 
+      postal_code: row['address_postal'] || '', 
+      phone: row['phone'] || '', 
+      hours: row['open_hours'] || '',
+      service_areas: row['service_areas'] || '',
+      gmb_url: row['gmb_url'] || ''
+    }) 
+  },
+  // Services/Expertise (Page 3)
+  { 
+    sheetName: 'Expertise', 
+    fieldName: 'services', 
+    rowMapper: (row) => ({ 
+      service_id: crypto.randomUUID(), 
+      title: row['expertise_name'] || '', 
+      description: row['description'] || '' 
+    }) 
+  },
+  // Practice Areas (Page 4) - Legal
+  { 
+    sheetName: 'Practice Areas', 
+    fieldName: 'practice_areas', 
+    rowMapper: (row) => ({ 
+      practice_area_id: crypto.randomUUID(), 
+      name: row['name'] || '', 
+      case_types: row['case_types'] || '', 
+      jurisdiction: row['jurisdiction'] || '', 
+      service_areas: row['service_areas'] || '',
+      description: row['description'] || '' 
+    }) 
+  },
+  // Medical Specialties (Page 5)
+  { 
+    sheetName: 'Specialties', 
+    fieldName: 'medical_specialties', 
+    rowMapper: (row) => ({ 
+      specialty_id: crypto.randomUUID(), 
+      name: row['specialty_name'] || '', 
+      patient_population: row['patient_population'] || '',
+      conditions_treated: row['conditions_treated'] || '', 
+      procedures_offered: row['procedures_offered'] || '', 
+      description: row['description'] || '' 
+    }) 
+  },
+  // FAQs (Page 9)
+  { 
+    sheetName: 'FAQs', 
+    fieldName: 'faqs', 
+    rowMapper: (row) => ({ 
+      question: row['question'] || '', 
+      answer: row['answer'] || '', 
+      url: row['url'] || '' 
+    }) 
+  },
+  // Help Articles (Page 10)
+  { 
+    sheetName: 'Articles', 
+    fieldName: 'help_articles', 
+    rowMapper: (row) => ({ 
+      article_id: row['article_id'] || crypto.randomUUID(), 
+      title: row['title'] || '', 
+      article_type: row['article_type'] || '',
+      article_content: row['article_content'] || '',
+      published_date: row['published_date'] || '', 
+      url: row['url'] || '',
+      keywords: row['keywords'] || '',
+      slug: row['slug'] || ''
+    }) 
+  },
+  // Reviews (Page 11)
+  { 
+    sheetName: 'Reviews', 
+    fieldName: 'reviews', 
+    rowMapper: (row) => ({ 
+      review_title: row['review_title'] || '',
+      date: row['date'] || '', 
+      rating: parseInt(row['rating']) || 5, 
+      review_body: row['review'] || ''
+    }) 
+  },
+  // Case Studies (Page 12)
+  { 
+    sheetName: 'Case Studies', 
+    fieldName: 'case_studies', 
+    rowMapper: (row) => ({ 
+      case_id: crypto.randomUUID(), 
+      title: row['title'] || '', 
+      summary: row['summary'] || '', 
+      outcome_metrics: row['outcome'] || '' 
+    }) 
+  },
+  // Media Mentions (Page 13)
+  { 
+    sheetName: 'Media', 
+    fieldName: 'media_mentions', 
+    rowMapper: (row) => ({ 
+      title: row['title'] || '', 
+      publications: row['publication'] || '', 
+      date: row['date'] || '', 
+      url: row['url'] || '' 
+    }) 
+  },
+  // Awards (Page 14)
+  { 
+    sheetName: 'Awards', 
+    fieldName: 'awards', 
+    rowMapper: (row) => ({ 
+      name: row['award_name'] || '', 
+      issuer: row['issuer'] || '', 
+      date_awarded: row['date'] || '',
+      url: row['url'] || '' 
+    }) 
+  },
+  // Certifications (Page 15) - Business level
+  { 
+    sheetName: 'Certifications', 
+    fieldName: 'certifications', 
+    rowMapper: (row) => ({ 
+      name: row['certification_name'] || '', 
+      issuing_body: row['issuer'] || '', 
+      date_obtained: row['date'] || '',
+      url: row['url'] || ''
+    }) 
+  },
+  // Accreditations (Page 16)
+  { 
+    sheetName: 'Accreditations', 
+    fieldName: 'accreditations', 
+    rowMapper: (row) => ({ 
+      name: row['accreditation_name'] || '', 
+      accrediting_body: row['organization'] || '', 
+      date_obtained: row['date'] || '',
+      url: row['url'] || ''
+    }) 
+  },
 ];
+
+// Team member sheets (Pages 6, 7, 8)
+const parseTeamSheet = (sheet: XLSX.WorkSheet, vertical: 'general' | 'legal' | 'medical'): any[] => {
+  const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+  return rows.map(row => {
+    const member: any = {
+      member_name: row['full_name'] || '',
+      role: row['role_title'] || '',
+      linkedin_url: row['linkedin_url'] || '',
+      photo_url: row['photo_url'] || '',
+      bio: row['bio'] || '',
+      profile_urls: parseProfileLinks(row['profile_links']),
+      certifications: parseCertifications(row['certifications']),
+    };
+
+    if (vertical === 'general') {
+      member.license_number = row['license_number'] || '';
+      member.specialties = row['areas_of_expertise'] ? String(row['areas_of_expertise']).split(',').map(s => s.trim()).filter(Boolean) : [];
+    } else if (vertical === 'legal') {
+      member.bar_numbers = row['bar_number'] ? String(row['bar_number']).split(',').map(s => s.trim()).filter(Boolean) : [];
+      member.specialties = row['practice_areas'] ? String(row['practice_areas']).split(',').map(s => s.trim()).filter(Boolean) : [];
+    } else if (vertical === 'medical') {
+      member.npi_number = row['npi_number'] || '';
+      member.specialties = row['medical_specialties'] ? String(row['medical_specialties']).split(',').map(s => s.trim()).filter(Boolean) : [];
+    }
+
+    return member;
+  }).filter(m => m.member_name);
+};
 
 export function parseXlsxToProfile(file: ArrayBuffer, existingData: Partial<ClientProfile>): Partial<ClientProfile> {
   const workbook = XLSX.read(file, { type: 'array' });
   const result: Partial<ClientProfile> = { ...existingData };
   
-  if (workbook.SheetNames.includes('Organization')) {
-    Object.assign(result, parseOrganizationSheet(workbook.Sheets['Organization']));
+  // Parse Organization sheet (first sheet)
+  const orgSheetName = workbook.SheetNames[0];
+  if (orgSheetName) {
+    Object.assign(result, parseOrganizationSheet(workbook.Sheets[orgSheetName]));
   }
   
+  // Parse team member sheets based on vertical
+  const vertical = result.vertical || 'general';
+  const teamSheetNames = {
+    general: 'Team - General',
+    legal: 'Team - Legal',
+    medical: 'Team - Medical'
+  };
+  
+  // Try to find and parse team sheets
+  for (const [v, sheetName] of Object.entries(teamSheetNames)) {
+    if (workbook.SheetNames.includes(sheetName)) {
+      const teamMembers = parseTeamSheet(workbook.Sheets[sheetName], v as 'general' | 'legal' | 'medical');
+      if (teamMembers.length > 0) {
+        const existingTeam = (result.team_members as any[]) || [];
+        const merged = [...existingTeam];
+        for (const member of teamMembers) {
+          const existingIndex = merged.findIndex((e: any) => e.member_name === member.member_name);
+          if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...member };
+          else merged.push(member);
+        }
+        result.team_members = merged;
+      }
+    }
+  }
+  
+  // Parse other tabular sheets
   for (const mapper of sheetMappers) {
     if (workbook.SheetNames.includes(mapper.sheetName)) {
       const items = parseTabularSheet(workbook.Sheets[mapper.sheetName], mapper.rowMapper);
@@ -79,9 +287,11 @@ export function parseXlsxToProfile(file: ArrayBuffer, existingData: Partial<Clie
         const existingItems = (result[mapper.fieldName] as any[]) || [];
         const merged = [...existingItems];
         for (const item of items) {
-          const nameKey = item.name || item.title || item.member_name || item.question || '';
+          const nameKey = item.name || item.title || item.member_name || item.question || item.location_name || '';
           if (!nameKey) { merged.push(item); continue; }
-          const existingIndex = merged.findIndex((e: any) => (e.name || e.title || e.member_name || e.question || '') === nameKey);
+          const existingIndex = merged.findIndex((e: any) => 
+            (e.name || e.title || e.member_name || e.question || e.location_name || '') === nameKey
+          );
           if (existingIndex >= 0) merged[existingIndex] = { ...merged[existingIndex], ...item };
           else merged.push(item);
         }
@@ -89,6 +299,7 @@ export function parseXlsxToProfile(file: ArrayBuffer, existingData: Partial<Clie
       }
     }
   }
+  
   return result;
 }
 
