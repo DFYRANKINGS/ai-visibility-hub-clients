@@ -1,103 +1,100 @@
-// Service (expertise_name sheet - Page 3)
+// Service (business vertical - expertise/services)
 export interface Service {
   service_id?: string;
-  expertise_name: string;  // XLSX: expertise_name
+  title?: string;
+  name?: string;
   description: string;
+  category?: string;
+  slug?: string;
+  featured?: boolean;
 }
 
-// Product (not in XLSX Business template - Business vertical only)
-export interface Product {
-  product_id?: string;
-  name: string;
-  short_description: string;
-  description: string;
-  features: string[];
-  sku: string;
-  brand: string;
-}
-
-// FAQ (Page 9)
+// FAQ
 export interface FAQ {
   question: string;
   answer: string;
-  url?: string;  // XLSX uses url, not slug
+  keywords?: string;
+  slug?: string;
 }
 
-// Article (Page 10)
-export interface Article {
+// Help Article (help_articles column)
+export interface HelpArticle {
   article_id?: string;
   title: string;
-  article_type: string;
-  article_content: string;  // XLSX: article_content (not article)
-  published_date: string;
-  url: string;
-  keywords: string;
-  slug: string;
+  article_type?: string;
+  article_content?: string;
+  published_date?: string;
+  url?: string;
+  keywords?: string;
+  slug?: string;
 }
 
-// Review (Page 11)
+// Review
 export interface Review {
-  review_title: string;
-  date: string;
-  rating: number;
-  review: string;  // XLSX: review (not review_body)
+  customer_name?: string;
+  review_title?: string;
+  review_body?: string;
+  rating?: number;
+  date?: string;
+  reviewer_profession?: string;
 }
 
-// Location (Page 2)
+// Location (stored in locations JSONB array)
 export interface Location {
-  location_name: string;
-  phone: string;
-  email?: string;  // XLSX has email
-  address_street: string;  // XLSX uses address_street
-  address_city: string;
-  address_state: string;
-  address_postal: string;  // XLSX: address_postal (not postal_code)
-  service_areas?: string;  // XLSX has service_areas
-  open_hours: string;  // XLSX: open_hours (not hours)
-  gmb_url?: string;  // XLSX has gmb_url per location
+  location_id?: string;
+  location_name?: string;
+  name?: string;
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  phone?: string;
+  hours?: string;
 }
 
-// TeamMember (Page 6 - General Business)
+// TeamMember (team_members column - label changes per vertical but same DB column)
 export interface TeamMember {
-  full_name: string;  // XLSX: full_name (not member_name)
-  role_title: string;  // XLSX: role_title (not role)
+  member_name?: string;
+  name?: string;
+  role?: string;
+  title?: string;
+  bio?: string;
   linkedin_url?: string;
   photo_url?: string;
   license_number?: string;
   npi_number?: string;
   bar_number?: string;
-  profile_links?: string;  // XLSX has profile_links
-  certifications?: string;  // XLSX has certifications
-  areas_of_expertise?: string;  // XLSX: areas_of_expertise
-  bio: string;
+  specialties?: string[];
 }
 
-// Award (Page 14)
+// Award
 export interface Award {
-  award_name: string;  // XLSX: award_name (not name)
-  issuer: string;
-  date: string;  // XLSX: date (not date_awarded)
-  url?: string;  // XLSX: url (not award_url)
+  name?: string;
+  issuer?: string;
+  date_awarded?: string;
+  award_url?: string;
 }
 
-// MediaMention (Page 13)
+// MediaMention
 export interface MediaMention {
-  title: string;
-  publication: string;  // XLSX: publication (singular)
-  date: string;
+  title?: string;
+  publications?: string;
+  date?: string;
   url?: string;
+  mention_type?: string;
 }
 
-// CaseStudy (Page 12)
+// CaseStudy
 export interface CaseStudy {
-  title: string;
-  summary: string;
-  outcome: string;  // XLSX: outcome (not outcome_metrics)
+  case_id?: string;
+  title?: string;
+  summary?: string;
+  outcome_metrics?: string;
 }
 
 export interface Certification {
   name: string;
-  issuing_body: string;
+  issuing_body?: string;
   date_obtained?: string;
   expiration_date?: string;
   credential_id?: string;
@@ -105,46 +102,41 @@ export interface Certification {
 
 export interface Accreditation {
   name: string;
-  accrediting_body: string;
+  accrediting_body?: string;
   date_obtained?: string;
   expiration_date?: string;
 }
 
-export interface InsuranceAccepted {
-  name: string;
-  plan_types?: string;
-}
-
 // Legal Practice Area for vertical === 'legal'
 export interface PracticeArea {
-  practice_area_id: string;
+  practice_area_id?: string;
   name: string;
-  case_types: string;
-  jurisdiction: string;
-  service_areas: string;
-  description: string;
-  featured: boolean;
+  case_types?: string;
+  jurisdiction?: string;
+  service_areas?: string;
+  description?: string;
+  featured?: boolean;
 }
 
-// Legal profile for credentials only (no practice_areas - stored at top level)
+// Legal profile for credentials only
 export interface LegalProfile {
   bar_numbers?: string[];
   jurisdictions?: string[];
   court_admissions?: string[];
 }
 
-// Medical Specialty for vertical === 'medical' - stored at top level
+// Medical Specialty for vertical === 'medical'
 export interface MedicalSpecialty {
-  specialty_id: string;
+  specialty_id?: string;
   name: string;
-  conditions_treated: string;
-  procedures_offered: string;
-  patient_population: string;
-  description: string;
-  featured: boolean;
+  conditions_treated?: string;
+  procedures_offered?: string;
+  patient_population?: string;
+  description?: string;
+  featured?: boolean;
 }
 
-// Medical profile for credentials only (no specialties - stored at top level)
+// Medical profile for credentials only
 export interface MedicalProfile {
   npi_number?: string;
   medical_license?: string;
@@ -154,6 +146,12 @@ export interface MedicalProfile {
   telehealth_available?: boolean;
 }
 
+// OtherProfile for other_profiles JSONB array
+export interface OtherProfile {
+  platform?: string;
+  url: string;
+}
+
 export type BusinessVertical = 'general' | 'legal' | 'medical';
 
 export interface ClientProfile {
@@ -161,65 +159,71 @@ export interface ClientProfile {
   entity_id: string;
   owner_user_id: string;
   agency_user_id: string;
-  // Page 1 - Organization fields (XLSX alignment)
+  
+  // Core business info (DB columns)
   business_name: string;
-  main_website_url?: string;  // XLSX: main_website_url
-  logo_url?: string;  // XLSX has logo_url
-  year_established?: number;  // XLSX: year_established (maps to founding_year in DB)
-  team_size?: number;
+  alternate_name?: string;
+  vertical?: BusinessVertical;
+  category?: string;
+  business_url?: string;
+  logo_url?: string;
   short_description?: string;
   long_description?: string;
-  category?: string;  // XLSX has category
-  // Entity Linking URLs (XLSX Page 1)
-  google_business_url?: string;  // XLSX: google_business_url
-  google_maps_url?: string;  // XLSX has google_maps_url
-  apple_maps_url?: string;
+  year_established?: number;
+  team_size?: number;
+  
+  // Contact
+  phone?: string;
+  email?: string;
+  
+  // Locations JSONB array
+  locations?: Location[];
+  
+  // Social/Entity linking URLs
+  google_business_url?: string;
+  google_maps_url?: string;
   yelp_url?: string;
   bbb_url?: string;
-  linkedin_url?: string;  // XLSX has linkedin_url
-  facebook_url?: string;  // XLSX has facebook_url
-  instagram_url?: string;  // XLSX has instagram_url
-  youtube_url?: string;  // XLSX has youtube_url
-  twitter_url?: string;  // XLSX has twitter_url
+  apple_maps_url?: string;
+  linkedin_url?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  youtube_url?: string;
+  twitter_url?: string;
   tiktok_url?: string;
   pinterest_url?: string;
-  other_profiles?: string;  // XLSX: other_profiles
-  // Contact info
-  primary_phone?: string;  // XLSX: primary_phone
-  primary_email?: string;  // XLSX: primary_email
-  open_hours?: string;  // XLSX: open_hours
-  service_areas?: string;  // XLSX: service_areas
-  // JSONB arrays
-  services?: Service[];  // business only (expertise)
-  products?: Product[];
-  faqs?: FAQ[];
-  articles?: Article[];
-  reviews?: Review[];
-  locations?: Location[];
+  other_profiles?: OtherProfile[];
+  
+  // Team members JSONB array (label varies by vertical)
   team_members?: TeamMember[];
-  awards?: Award[];
-  media_mentions?: MediaMention[];
-  case_studies?: CaseStudy[];
-  created_at?: string;
-  updated_at?: string;
-  // Core fields
-  vertical?: BusinessVertical;
+  
+  // Credentials
   certifications?: Certification[];
   accreditations?: Accreditation[];
-  insurance_accepted?: InsuranceAccepted[];
-  // Top-level vertical-specific arrays (per canonical rules)
-  practice_areas?: PracticeArea[];  // legal only
-  medical_specialties?: MedicalSpecialty[];  // medical only
-  // Vertical-specific profiles (credentials only, no arrays)
   legal_profile?: LegalProfile;
   medical_profile?: MedicalProfile;
+  
+  // Offerings by vertical
+  services?: Service[];  // business vertical only
+  practice_areas?: PracticeArea[];  // legal vertical only
+  medical_specialties?: MedicalSpecialty[];  // medical vertical only
+  
+  // Content JSONB arrays
+  faqs?: FAQ[];
+  help_articles?: HelpArticle[];  // renamed from articles
+  reviews?: Review[];
+  case_studies?: CaseStudy[];
+  media_mentions?: MediaMention[];
+  awards?: Award[];
+  
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type FormStep = 
   | 'entity'
   | 'credentials'
   | 'services'
-  | 'products'
   | 'faqs'
   | 'articles'
   | 'reviews'
