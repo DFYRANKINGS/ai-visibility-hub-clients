@@ -1,21 +1,20 @@
 import { ClientProfile } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
-import { Check, Building2, Briefcase, Package, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban, BadgeCheck } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban, BadgeCheck } from 'lucide-react';
 
 interface ReviewStepProps {
   data: Partial<ClientProfile>;
 }
 
 export function ReviewStep({ data }: ReviewStepProps) {
-  const credentialsCount = (data.certifications?.length || 0) + (data.accreditations?.length || 0) + (data.insurance_accepted?.length || 0);
+  const credentialsCount = (data.certifications?.length || 0) + (data.accreditations?.length || 0);
   
   const sections = [
     { icon: Building2, label: 'Organization', filled: !!data.business_name },
     { icon: BadgeCheck, label: 'Credentials', count: credentialsCount },
     { icon: Briefcase, label: 'Services', count: data.services?.length || 0 },
-    { icon: Package, label: 'Products', count: data.products?.length || 0 },
     { icon: HelpCircle, label: 'FAQs', count: data.faqs?.length || 0 },
-    { icon: FileText, label: 'Articles', count: data.articles?.length || 0 },
+    { icon: FileText, label: 'Help Articles', count: data.help_articles?.length || 0 },
     { icon: Star, label: 'Reviews', count: data.reviews?.length || 0 },
     { icon: MapPin, label: 'Locations', count: data.locations?.length || 0 },
     { icon: Users, label: 'Team', count: data.team_members?.length || 0 },

@@ -11,35 +11,30 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   // Core business info
   'business_name',
   'alternate_name',
-  'legal_name',
+  'category',
   'business_url',
   'logo_url',
   'short_description',
   'long_description',
-  'category',
   'year_established',
   'team_size',
 
   // Contact
   'phone',
   'email',
-  'hours',
 
   // JSONB arrays - locations & team
   'locations',
   'team_members',
 
   // Credentials
-  'license_number',
   'certifications',
   'accreditations',
-  'insurance_accepted',
   'legal_profile',
   'medical_profile',
 
   // Offerings by vertical
   'services',
-  'products',
   'practice_areas',
   'medical_specialties',
 
@@ -50,19 +45,19 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   'awards',
   'faqs',
   'help_articles',
-  'articles',
 
   // Authority / social profiles
-  'linkedin_profile',
-  'facebook_profile',
-  'instagram_profile',
-  'youtube_profile',
-  'twitter_profile',
-  'tiktok_profile',
-  'pinterest_profile',
-  'yelp_profile',
-  'bbb_profile',
   'google_business_url',
+  'google_maps_url',
+  'yelp_url',
+  'bbb_url',
   'apple_maps_url',
+  'linkedin_url',
+  'facebook_url',
+  'instagram_url',
+  'youtube_url',
+  'twitter_url',
+  'tiktok_url',
+  'pinterest_url',
   'other_profiles'
 ]);
