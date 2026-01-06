@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { TeamMember, BusinessVertical } from '@/types/profile';
+import { TeamMember, TeamMemberProfileUrl, BusinessVertical } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, User, Link } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TeamStepProps {
@@ -18,6 +18,7 @@ const emptyMember: TeamMember = {
   member_name: '',
   role: '',
   bio: '',
+  profile_urls: [],
 };
 
 export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamStepProps) {
@@ -41,7 +42,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
   };
 
   const addMember = () => {
-    onChange([...teamMembers, { ...emptyMember }]);
+    onChange([...teamMembers, { ...emptyMember, profile_urls: [] }]);
     setExpandedIndex(teamMembers.length);
   };
 
@@ -55,6 +56,26 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
   const updateMember = (index: number, field: keyof TeamMember, value: any) => {
     const updated = teamMembers.map((member, i) => i === index ? { ...member, [field]: value } : member);
     onChange(updated);
+  };
+
+  const addProfileUrl = (memberIndex: number) => {
+    const member = teamMembers[memberIndex];
+    const urls = member.profile_urls || [];
+    updateMember(memberIndex, 'profile_urls', [...urls, { platform: '', url: '' }]);
+  };
+
+  const removeProfileUrl = (memberIndex: number, urlIndex: number) => {
+    const member = teamMembers[memberIndex];
+    const urls = (member.profile_urls || []).filter((_, i) => i !== urlIndex);
+    updateMember(memberIndex, 'profile_urls', urls);
+  };
+
+  const updateProfileUrl = (memberIndex: number, urlIndex: number, field: keyof TeamMemberProfileUrl, value: string) => {
+    const member = teamMembers[memberIndex];
+    const urls = (member.profile_urls || []).map((url, i) => 
+      i === urlIndex ? { ...url, [field]: value } : url
+    );
+    updateMember(memberIndex, 'profile_urls', urls);
   };
 
   return (
@@ -75,7 +96,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
               </div>
               {expandedIndex === index ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
             </button>
-            <div className={cn("transition-all duration-300 overflow-hidden", expandedIndex === index ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0")}>
+            <div className={cn("transition-all duration-300 overflow-hidden", expandedIndex === index ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0")}>
               <div className="p-4 pt-0 space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField label="Full Name" required>
@@ -90,11 +111,6 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   <FormField label="Photo URL">
                     <Input type="url" placeholder="https://..." value={member.photo_url || ''} onChange={(e) => updateMember(index, 'photo_url', e.target.value)} />
                   </FormField>
-                  {(vertical === 'legal' || vertical === 'general') && (
-                    <FormField label="License Number">
-                      <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
-                    </FormField>
-                  )}
                   {vertical === 'medical' && (
                     <FormField label="NPI Number">
                       <Input placeholder="Optional" value={member.npi_number || ''} onChange={(e) => updateMember(index, 'npi_number', e.target.value)} />
@@ -120,6 +136,53 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                 <FormField label="Bio">
                   <Textarea placeholder="Brief biography..." value={member.bio || ''} onChange={(e) => updateMember(index, 'bio', e.target.value)} className="h-24" />
                 </FormField>
+
+                {/* Profile URLs Section */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">Profile URLs</span>
+                  </div>
+                  {(member.profile_urls || []).map((profileUrl, urlIndex) => (
+                    <div key={urlIndex} className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/30">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                        <Link className="w-3 h-3 text-primary" />
+                      </div>
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Platform (e.g., Avvo, Super Lawyers...)"
+                          value={profileUrl.platform || ''}
+                          onChange={(e) => updateProfileUrl(index, urlIndex, 'platform', e.target.value)}
+                        />
+                        <Input
+                          type="url"
+                          placeholder="https://..."
+                          value={profileUrl.url || ''}
+                          onChange={(e) => updateProfileUrl(index, urlIndex, 'url', e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeProfileUrl(index, urlIndex)}
+                        className="text-destructive hover:text-destructive shrink-0 h-8 w-8 p-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addProfileUrl(index)}
+                    className="w-full border-dashed"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Profile URL
+                  </Button>
+                </div>
+
                 <div className="flex justify-end pt-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => removeMember(index)} className="text-destructive hover:text-destructive">
                     <Trash2 className="w-4 h-4 mr-2" />Remove
