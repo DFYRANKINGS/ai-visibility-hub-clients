@@ -221,7 +221,8 @@ export interface ClientProfile {
 }
 
 export type FormStep = 
-  | 'entity'           // Organization (includes locations & team)
+  | 'entity'           // Organization (includes locations)
+  | 'team'             // Team members (Associates/Lawyers/Providers)
   | 'entity_linking'   // External profiles & links
   | 'credentials'
   | 'services'
