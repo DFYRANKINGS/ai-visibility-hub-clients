@@ -1,6 +1,6 @@
 import { FormStep } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, Package, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, MapPin, Users, Award, Newspaper, FolderKanban, BadgeCheck } from 'lucide-react';
 
 interface FormProgressProps {
   currentStep: FormStep;
@@ -9,10 +9,10 @@ interface FormProgressProps {
 
 const steps: { id: FormStep; label: string; icon: React.ElementType }[] = [
   { id: 'entity', label: 'Organization', icon: Building2 },
+  { id: 'credentials', label: 'Credentials', icon: BadgeCheck },
   { id: 'services', label: 'Services', icon: Briefcase },
-  { id: 'products', label: 'Products', icon: Package },
   { id: 'faqs', label: 'FAQs', icon: HelpCircle },
-  { id: 'articles', label: 'Articles', icon: FileText },
+  { id: 'articles', label: 'Help Articles', icon: FileText },
   { id: 'reviews', label: 'Reviews', icon: Star },
   { id: 'locations', label: 'Locations', icon: MapPin },
   { id: 'team', label: 'Team', icon: Users },
@@ -28,58 +28,32 @@ export function FormProgress({ currentStep, completedSteps }: FormProgressProps)
   return (
     <div className="w-full py-6">
       <div className="hidden lg:flex items-center justify-between relative">
-        {/* Progress line */}
         <div className="absolute left-0 right-0 top-5 h-0.5 bg-border z-0" />
-        <div 
-          className="absolute left-0 top-5 h-0.5 bg-primary transition-all duration-500 z-0"
-          style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
-        />
-        
-        {steps.map((step, index) => {
+        <div className="absolute left-0 top-5 h-0.5 bg-primary transition-all duration-500 z-0" style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }} />
+        {steps.map((step) => {
           const isCompleted = completedSteps.includes(step.id);
           const isCurrent = currentStep === step.id;
           const Icon = step.icon;
-          
           return (
             <div key={step.id} className="flex flex-col items-center relative z-10">
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-                  isCompleted && "bg-success text-success-foreground",
-                  isCurrent && !isCompleted && "bg-primary text-primary-foreground shadow-glow",
-                  !isCompleted && !isCurrent && "bg-muted text-muted-foreground"
-                )}
-              >
+              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                isCompleted && "bg-success text-success-foreground",
+                isCurrent && !isCompleted && "bg-primary text-primary-foreground shadow-glow",
+                !isCompleted && !isCurrent && "bg-muted text-muted-foreground")}>
                 {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
               </div>
-              <span
-                className={cn(
-                  "mt-2 text-xs font-medium transition-colors",
-                  isCurrent ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {step.label}
-              </span>
+              <span className={cn("mt-2 text-xs font-medium transition-colors", isCurrent ? "text-primary" : "text-muted-foreground")}>{step.label}</span>
             </div>
           );
         })}
       </div>
-      
-      {/* Mobile progress */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-foreground">
-            {steps.find((s) => s.id === currentStep)?.label}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {currentIndex + 1} of {steps.length}
-          </span>
+          <span className="text-sm font-medium text-foreground">{steps.find((s) => s.id === currentStep)?.label}</span>
+          <span className="text-sm text-muted-foreground">{currentIndex + 1} of {steps.length}</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-primary transition-all duration-500 rounded-full"
-            style={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }}
-          />
+          <div className="h-full bg-gradient-primary transition-all duration-500 rounded-full" style={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }} />
         </div>
       </div>
     </div>

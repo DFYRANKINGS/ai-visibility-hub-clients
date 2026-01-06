@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty } from '@/types/profile';
+import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty, HelpArticle } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
 import { LegalPracticeAreasStep } from '@/components/steps/LegalPracticeAreasStep';
 import { MedicalSpecialtiesStep } from '@/components/steps/MedicalSpecialtiesStep';
-import { ProductsStep } from '@/components/steps/ProductsStep';
 import { FAQsStep } from '@/components/steps/FAQsStep';
 import { ArticlesStep } from '@/components/steps/ArticlesStep';
 import { ReviewsStep } from '@/components/steps/ReviewsStep';
@@ -27,7 +26,7 @@ import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
 import { parseXlsxToProfile, readFileAsArrayBuffer } from '@/lib/xlsxImport';
 
 
-const steps: FormStep[] = ['entity', 'credentials', 'services', 'products', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
+const steps: FormStep[] = ['entity', 'credentials', 'services', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
 
 const profileDraftKey = (userId: string) => `aivp:draft:${userId}`;
 
@@ -65,21 +64,18 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
   // Organization Info sheet
   const orgData = [
     ['Business Name', data.business_name || ''],
-    ['Legal Name', data.legal_name || ''],
+    ['Alternate Name', data.alternate_name || ''],
     ['Business Vertical', data.vertical || ''],
     ['Business URL', data.business_url || ''],
     ['Short Description', data.short_description || ''],
     ['Long Description', data.long_description || ''],
-    ['Hours', data.hours || ''],
     ['Team Size', data.team_size || ''],
     ['Phone', data.phone || ''],
     ['Email', data.email || ''],
-    // NOTE: address_* fields removed - all address data lives in locations[]
   ];
   const orgSheet = XLSX.utils.aoa_to_sheet(orgData);
   XLSX.utils.book_append_sheet(workbook, orgSheet, 'Organization');
 
-  // Helper to create sheet from array data
   const addArraySheet = (sheetName: string, headers: string[], items: any[], mapper: (item: any) => any[]) => {
     if (items && items.length > 0) {
       const sheetData = [headers, ...items.map(mapper)];
@@ -88,53 +84,38 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     }
   };
 
-  // Services (no pricing fields)
   addArraySheet('Services', ['Name', 'Category', 'Description'], data.services || [], 
     (s) => [s.title || s.name || '', s.category || '', s.description || '']);
 
-  // Products (no pricing fields)
-  addArraySheet('Products', ['Name', 'Description', 'SKU', 'Brand'], data.products || [],
-    (p) => [p.name || '', p.description || '', p.sku || '', p.brand || '']);
-
-  // FAQs
   addArraySheet('FAQs', ['Question', 'Answer'], data.faqs || [],
     (f) => [f.question || '', f.answer || '']);
 
-  // Articles
-  addArraySheet('Articles', ['Title', 'URL', 'Date Published', 'Description'], data.articles || [],
-    (a) => [a.title || '', a.url || '', a.date_published || '', a.description || '']);
+  addArraySheet('Help Articles', ['Title', 'URL', 'Date Published', 'Content'], data.help_articles || [],
+    (a) => [a.title || '', a.url || '', a.published_date || '', a.article_content || '']);
 
-  // Reviews
-  addArraySheet('Reviews', ['Author', 'Rating', 'Review Text', 'Date', 'Source'], data.reviews || [],
-    (r) => [r.author || '', r.rating || '', r.review_text || '', r.date || '', r.source || '']);
+  addArraySheet('Reviews', ['Customer', 'Rating', 'Review', 'Date'], data.reviews || [],
+    (r) => [r.customer_name || '', r.rating || '', r.review_body || '', r.date || '']);
 
-  // Locations (use canonical field names: street, city, state, postal_code)
-  addArraySheet('Locations', ['Name', 'Street', 'City', 'State', 'Postal Code', 'Phone'], data.locations || [],
-    (l) => [l.location_name || l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '']);
+  addArraySheet('Locations', ['Name', 'Street', 'City', 'State', 'Postal Code', 'Phone', 'Hours'], data.locations || [],
+    (l) => [l.location_name || l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '', l.hours || '']);
 
-  // Team Members
-  addArraySheet('Team Members', ['Name', 'Title', 'Bio', 'Email', 'Phone'], data.team_members || [],
-    (t) => [t.name || '', t.title || '', t.bio || '', t.email || '', t.phone || '']);
+  addArraySheet('Team Members', ['Name', 'Role', 'Bio'], data.team_members || [],
+    (t) => [t.member_name || t.name || '', t.role || t.title || '', t.bio || '']);
 
-  // Awards
-  addArraySheet('Awards', ['Name', 'Year', 'Issuer', 'Description'], data.awards || [],
-    (a) => [a.name || '', a.year || '', a.issuer || '', a.description || '']);
+  addArraySheet('Awards', ['Name', 'Issuer', 'Date'], data.awards || [],
+    (a) => [a.name || '', a.issuer || '', a.date_awarded || '']);
 
-  // Media Mentions
   addArraySheet('Media Mentions', ['Title', 'Publication', 'URL', 'Date'], data.media_mentions || [],
-    (m) => [m.title || '', m.publication || '', m.url || '', m.date || '']);
+    (m) => [m.title || '', m.publications || '', m.url || '', m.date || '']);
 
-  // Case Studies
-  addArraySheet('Case Studies', ['Title', 'Description', 'Outcome', 'URL'], data.case_studies || [],
-    (c) => [c.title || '', c.description || '', c.outcome || '', c.url || '']);
+  addArraySheet('Case Studies', ['Title', 'Summary', 'Outcome'], data.case_studies || [],
+    (c) => [c.title || '', c.summary || '', c.outcome_metrics || '']);
 
-  // Certifications
-  addArraySheet('Certifications', ['Name', 'Issuer', 'Year', 'URL'], data.certifications || [],
-    (c) => [c.name || '', c.issuer || '', c.year || '', c.url || '']);
+  addArraySheet('Certifications', ['Name', 'Issuer', 'Date'], data.certifications || [],
+    (c) => [c.name || '', c.issuing_body || '', c.date_obtained || '']);
 
-  // Accreditations
-  addArraySheet('Accreditations', ['Name', 'Issuer', 'Year', 'URL'], data.accreditations || [],
-    (a) => [a.name || '', a.issuer || '', a.year || '', a.url || '']);
+  addArraySheet('Accreditations', ['Name', 'Issuer', 'Date'], data.accreditations || [],
+    (a) => [a.name || '', a.accrediting_body || '', a.date_obtained || '']);
 
   // Legal Practice Areas (top-level)
   if (data.practice_areas && data.practice_areas.length > 0) {
@@ -167,9 +148,9 @@ export default function ProfilePage() {
   const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>(() => ({
     entity_id: crypto.randomUUID(),
     agency_user_id: HARDCODED_AGENCY_USER_ID,
-    services: [], products: [], faqs: [], articles: [], reviews: [],
+    services: [], faqs: [], help_articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
-    certifications: [], accreditations: [], insurance_accepted: [],
+    certifications: [], accreditations: [],
     practice_areas: [], medical_specialties: [],
     vertical: 'general',
   }));

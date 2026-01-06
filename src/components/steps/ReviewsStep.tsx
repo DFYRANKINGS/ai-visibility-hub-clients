@@ -17,7 +17,8 @@ const emptyReview: Review = {
   review_title: '',
   date: '',
   rating: 5,
-  review: '',
+  review_body: '',
+  customer_name: '',
 };
 
 export function ReviewsStep({ reviews, onChange }: ReviewsStepProps) {
@@ -31,17 +32,12 @@ export function ReviewsStep({ reviews, onChange }: ReviewsStepProps) {
   const removeReview = (index: number) => {
     const updated = reviews.filter((_, i) => i !== index);
     onChange(updated);
-    if (expandedIndex === index) {
-      setExpandedIndex(null);
-    } else if (expandedIndex !== null && expandedIndex > index) {
-      setExpandedIndex(expandedIndex - 1);
-    }
+    if (expandedIndex === index) setExpandedIndex(null);
+    else if (expandedIndex !== null && expandedIndex > index) setExpandedIndex(expandedIndex - 1);
   };
 
   const updateReview = (index: number, field: keyof Review, value: string | number) => {
-    const updated = reviews.map((review, i) => 
-      i === index ? { ...review, [field]: value } : review
-    );
+    const updated = reviews.map((review, i) => i === index ? { ...review, [field]: value } : review);
     onChange(updated);
   };
 
@@ -63,10 +59,10 @@ export function ReviewsStep({ reviews, onChange }: ReviewsStepProps) {
             <button type="button" onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
               className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
               <div className="flex items-center gap-3">
-                <span className="font-medium text-foreground">{review.review_title || `Review ${index + 1}`}</span>
+                <span className="font-medium text-foreground">{review.review_title || review.customer_name || `Review ${index + 1}`}</span>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={cn("w-4 h-4", star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted")} />
+                    <Star key={star} className={cn("w-4 h-4", star <= (review.rating || 5) ? "fill-yellow-400 text-yellow-400" : "text-muted")} />
                   ))}
                 </div>
               </div>
@@ -75,16 +71,22 @@ export function ReviewsStep({ reviews, onChange }: ReviewsStepProps) {
             <div className={cn("transition-all duration-300 overflow-hidden", expandedIndex === index ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0")}>
               <div className="p-4 pt-0 space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="Review Title" required>
-                    <Input placeholder="Excellent Service!" value={review.review_title} onChange={(e) => updateReview(index, 'review_title', e.target.value)} />
+                  <FormField label="Review Title">
+                    <Input placeholder="Excellent Service!" value={review.review_title || ''} onChange={(e) => updateReview(index, 'review_title', e.target.value)} />
+                  </FormField>
+                  <FormField label="Customer Name">
+                    <Input placeholder="John Doe" value={review.customer_name || ''} onChange={(e) => updateReview(index, 'customer_name', e.target.value)} />
                   </FormField>
                   <FormField label="Date">
-                    <Input type="date" value={review.date} onChange={(e) => updateReview(index, 'date', e.target.value)} />
+                    <Input type="date" value={review.date || ''} onChange={(e) => updateReview(index, 'date', e.target.value)} />
+                  </FormField>
+                  <FormField label="Source">
+                    <Input placeholder="Google, Yelp, etc." value={review.reviewer_profession || ''} onChange={(e) => updateReview(index, 'reviewer_profession', e.target.value)} />
                   </FormField>
                 </div>
-                <FormField label="Rating">{renderStars(review.rating, index)}</FormField>
+                <FormField label="Rating">{renderStars(review.rating || 5, index)}</FormField>
                 <FormField label="Review" required>
-                  <Textarea placeholder="Share the customer's experience..." value={review.review} onChange={(e) => updateReview(index, 'review', e.target.value)} className="h-24" />
+                  <Textarea placeholder="Share the customer's experience..." value={review.review_body || ''} onChange={(e) => updateReview(index, 'review_body', e.target.value)} className="h-24" />
                 </FormField>
                 <div className="flex justify-end pt-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => removeReview(index)} className="text-destructive hover:text-destructive">
