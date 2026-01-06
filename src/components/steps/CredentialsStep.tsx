@@ -154,58 +154,6 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
         </div>
       </FormCard>
 
-      {/* Entity Linking */}
-      <FormCard title="Entity Linking" description="Link your business profiles across major platforms.">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField label="Google Business Profile URL">
-            <Input type="url" placeholder="https://business.google.com/..." value={data.google_business_url || ''} onChange={(e) => onChange({ ...data, google_business_url: e.target.value })} />
-          </FormField>
-          <FormField label="Google Maps URL">
-            <Input type="url" placeholder="https://maps.google.com/..." value={data.google_maps_url || ''} onChange={(e) => onChange({ ...data, google_maps_url: e.target.value })} />
-          </FormField>
-          <FormField label="Apple Maps URL">
-            <Input type="url" placeholder="https://maps.apple.com/..." value={data.apple_maps_url || ''} onChange={(e) => onChange({ ...data, apple_maps_url: e.target.value })} />
-          </FormField>
-          <FormField label="Yelp URL">
-            <Input type="url" placeholder="https://www.yelp.com/biz/..." value={data.yelp_url || ''} onChange={(e) => onChange({ ...data, yelp_url: e.target.value })} />
-          </FormField>
-          <FormField label="BBB URL">
-            <Input type="url" placeholder="https://www.bbb.org/..." value={data.bbb_url || ''} onChange={(e) => onChange({ ...data, bbb_url: e.target.value })} />
-          </FormField>
-          <FormField label="LinkedIn URL">
-            <Input type="url" placeholder="https://www.linkedin.com/company/..." value={data.linkedin_url || ''} onChange={(e) => onChange({ ...data, linkedin_url: e.target.value })} />
-          </FormField>
-          <FormField label="Facebook URL">
-            <Input type="url" placeholder="https://www.facebook.com/..." value={data.facebook_url || ''} onChange={(e) => onChange({ ...data, facebook_url: e.target.value })} />
-          </FormField>
-          <FormField label="Instagram URL">
-            <Input type="url" placeholder="https://www.instagram.com/..." value={data.instagram_url || ''} onChange={(e) => onChange({ ...data, instagram_url: e.target.value })} />
-          </FormField>
-          <FormField label="YouTube URL">
-            <Input type="url" placeholder="https://www.youtube.com/..." value={data.youtube_url || ''} onChange={(e) => onChange({ ...data, youtube_url: e.target.value })} />
-          </FormField>
-          <FormField label="Twitter/X URL">
-            <Input type="url" placeholder="https://www.twitter.com/..." value={data.twitter_url || ''} onChange={(e) => onChange({ ...data, twitter_url: e.target.value })} />
-          </FormField>
-          <FormField label="TikTok URL">
-            <Input type="url" placeholder="https://www.tiktok.com/@..." value={data.tiktok_url || ''} onChange={(e) => onChange({ ...data, tiktok_url: e.target.value })} />
-          </FormField>
-          <FormField label="Pinterest URL">
-            <Input type="url" placeholder="https://www.pinterest.com/..." value={data.pinterest_url || ''} onChange={(e) => onChange({ ...data, pinterest_url: e.target.value })} />
-          </FormField>
-          <FormField label="Other Profile URLs" className="md:col-span-2" hint="Comma-separated URLs">
-            <Input
-              placeholder="https://..., https://..."
-              value={(data.other_profiles || []).map(p => p.url).join(', ')}
-              onChange={(e) => {
-                const urls = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                onChange({ ...data, other_profiles: urls.map(url => ({ url })) });
-              }}
-            />
-          </FormField>
-        </div>
-      </FormCard>
-
       {/* Legal Profile */}
       {vertical === 'legal' && (
         <FormCard title="Legal Profile" description="Legal-specific credentials and practice information.">

@@ -58,6 +58,12 @@ export interface TeamMemberProfileUrl {
   url: string;
 }
 
+export interface TeamMemberCertification {
+  name: string;
+  issuing_body?: string;
+  date_obtained?: string;
+}
+
 export interface TeamMember {
   member_name?: string;
   name?: string;
@@ -70,6 +76,7 @@ export interface TeamMember {
   bar_number?: string;
   specialties?: string[];
   profile_urls?: TeamMemberProfileUrl[];
+  certifications?: TeamMemberCertification[];
 }
 
 // Award

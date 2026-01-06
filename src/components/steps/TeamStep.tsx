@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { TeamMember, TeamMemberProfileUrl, BusinessVertical } from '@/types/profile';
+import { TeamMember, TeamMemberProfileUrl, TeamMemberCertification, BusinessVertical } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, ChevronDown, ChevronUp, User, Link } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, User, Link, BadgeCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TeamStepProps {
@@ -19,6 +19,7 @@ const emptyMember: TeamMember = {
   role: '',
   bio: '',
   profile_urls: [],
+  certifications: [],
 };
 
 export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamStepProps) {
@@ -42,7 +43,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
   };
 
   const addMember = () => {
-    onChange([...teamMembers, { ...emptyMember, profile_urls: [] }]);
+    onChange([...teamMembers, { ...emptyMember, profile_urls: [], certifications: [] }]);
     setExpandedIndex(teamMembers.length);
   };
 
@@ -58,6 +59,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
     onChange(updated);
   };
 
+  // Profile URLs
   const addProfileUrl = (memberIndex: number) => {
     const member = teamMembers[memberIndex];
     const urls = member.profile_urls || [];
@@ -78,6 +80,27 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
     updateMember(memberIndex, 'profile_urls', urls);
   };
 
+  // Certifications
+  const addCertification = (memberIndex: number) => {
+    const member = teamMembers[memberIndex];
+    const certs = member.certifications || [];
+    updateMember(memberIndex, 'certifications', [...certs, { name: '', issuing_body: '', date_obtained: '' }]);
+  };
+
+  const removeCertification = (memberIndex: number, certIndex: number) => {
+    const member = teamMembers[memberIndex];
+    const certs = (member.certifications || []).filter((_, i) => i !== certIndex);
+    updateMember(memberIndex, 'certifications', certs);
+  };
+
+  const updateCertification = (memberIndex: number, certIndex: number, field: keyof TeamMemberCertification, value: string) => {
+    const member = teamMembers[memberIndex];
+    const certs = (member.certifications || []).map((cert, i) => 
+      i === certIndex ? { ...cert, [field]: value } : cert
+    );
+    updateMember(memberIndex, 'certifications', certs);
+  };
+
   return (
     <FormCard title={getLabel()} description={getDescription()}>
       <div className="space-y-4">
@@ -96,7 +119,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
               </div>
               {expandedIndex === index ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
             </button>
-            <div className={cn("transition-all duration-300 overflow-hidden", expandedIndex === index ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0")}>
+            <div className={cn("transition-all duration-300 overflow-hidden", expandedIndex === index ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0")}>
               <div className="p-4 pt-0 space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField label="Full Name" required>
@@ -180,6 +203,57 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Profile URL
+                  </Button>
+                </div>
+
+                {/* Certifications Section */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">Certifications</span>
+                  </div>
+                  {(member.certifications || []).map((cert, certIndex) => (
+                    <div key={certIndex} className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/30">
+                      <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-1">
+                        <BadgeCheck className="w-3 h-3 text-green-600" />
+                      </div>
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Input
+                          placeholder="Certification Name"
+                          value={cert.name || ''}
+                          onChange={(e) => updateCertification(index, certIndex, 'name', e.target.value)}
+                        />
+                        <Input
+                          placeholder="Issuing Body"
+                          value={cert.issuing_body || ''}
+                          onChange={(e) => updateCertification(index, certIndex, 'issuing_body', e.target.value)}
+                        />
+                        <Input
+                          type="date"
+                          placeholder="Date Obtained"
+                          value={cert.date_obtained || ''}
+                          onChange={(e) => updateCertification(index, certIndex, 'date_obtained', e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCertification(index, certIndex)}
+                        className="text-destructive hover:text-destructive shrink-0 h-8 w-8 p-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addCertification(index)}
+                    className="w-full border-dashed"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Certification
                   </Button>
                 </div>
 
