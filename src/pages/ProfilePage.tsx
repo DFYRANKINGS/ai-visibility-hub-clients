@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty, HelpArticle } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
+import { EntityLinkingStep } from '@/components/steps/EntityLinkingStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
 import { LegalPracticeAreasStep } from '@/components/steps/LegalPracticeAreasStep';
@@ -26,7 +27,7 @@ import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
 import { parseXlsxToProfile, readFileAsArrayBuffer } from '@/lib/xlsxImport';
 
 
-const steps: FormStep[] = ['entity', 'credentials', 'services', 'faqs', 'articles', 'reviews', 'locations', 'team', 'awards', 'media', 'cases', 'review'];
+const steps: FormStep[] = ['entity', 'team', 'entity_linking', 'credentials', 'services', 'faqs', 'help_articles', 'reviews', 'awards', 'media', 'cases', 'review'];
 
 const profileDraftKey = (userId: string) => `aivp:draft:${userId}`;
 
@@ -206,22 +207,21 @@ export default function ProfilePage() {
           agency_user_id: (data as any).agency_user_id ?? HARDCODED_AGENCY_USER_ID,
 
           business_name: (data as any).business_name,
-          legal_name: (data as any).legal_name || undefined,
+          alternate_name: (data as any).alternate_name || undefined,
           vertical: (data as any).vertical || undefined,
 
-          business_url: data.business_url || undefined,
+          business_url: (data as any).business_url || undefined,
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
-          hours: data.hours || undefined,
-          team_size: data.team_size || undefined,
+          year_established: (data as any).year_established || undefined,
+          team_size: (data as any).team_size || undefined,
 
           phone: data.phone || undefined,
           email: data.email || undefined,
 
           services: (data.services as any[]) || [],
-          products: (data.products as any[]) || [],
           faqs: (data.faqs as any[]) || [],
-          articles: (data.articles as any[]) || [],
+          help_articles: ((data as any).help_articles as any[]) || [],
           reviews: (data.reviews as any[]) || [],
           locations: (data.locations as any[]) || [],
           team_members: (data.team_members as any[]) || [],
@@ -229,14 +229,28 @@ export default function ProfilePage() {
           media_mentions: (data.media_mentions as any[]) || [],
           case_studies: (data.case_studies as any[]) || [],
 
-          // Credentials + vertical-specific (kept for local drafts; persisted if the backend supports them)
+          // Credentials + vertical-specific
           certifications: ((data as any).certifications as any[]) || [],
           accreditations: ((data as any).accreditations as any[]) || [],
-          insurance_accepted: ((data as any).insurance_accepted as any[]) || [],
           practice_areas: ((data as any).practice_areas as any[]) || [],
           medical_specialties: ((data as any).medical_specialties as any[]) || [],
           legal_profile: ((data as any).legal_profile as any) || undefined,
           medical_profile: ((data as any).medical_profile as any) || undefined,
+          
+          // Entity linking
+          google_business_url: (data as any).google_business_url || undefined,
+          google_maps_url: (data as any).google_maps_url || undefined,
+          yelp_url: (data as any).yelp_url || undefined,
+          bbb_url: (data as any).bbb_url || undefined,
+          apple_maps_url: (data as any).apple_maps_url || undefined,
+          linkedin_url: (data as any).linkedin_url || undefined,
+          facebook_url: (data as any).facebook_url || undefined,
+          instagram_url: (data as any).instagram_url || undefined,
+          youtube_url: (data as any).youtube_url || undefined,
+          twitter_url: (data as any).twitter_url || undefined,
+          tiktok_url: (data as any).tiktok_url || undefined,
+          pinterest_url: (data as any).pinterest_url || undefined,
+          other_profiles: ((data as any).other_profiles as any[]) || [],
         };
 
         // Merge: defaults -> draft -> db (db wins where it has data)
@@ -245,16 +259,16 @@ export default function ProfilePage() {
         // Mark steps with data as completed
         const stepsWithData: FormStep[] = [];
         if ((data as any).business_name) stepsWithData.push('entity');
-        if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0 || ((fromDb.insurance_accepted as any[])?.length || 0) > 0) {
+        if ((data.team_members as any[])?.length > 0) stepsWithData.push('team');
+        const hasEntityLinking = (data as any).google_business_url || (data as any).linkedin_url || ((data as any).other_profiles as any[])?.length > 0;
+        if (hasEntityLinking) stepsWithData.push('entity_linking');
+        if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0) {
           stepsWithData.push('credentials');
         }
         if ((data.services as any[])?.length > 0 || ((data as any).practice_areas as any[])?.length > 0 || ((data as any).medical_specialties as any[])?.length > 0) stepsWithData.push('services');
-        if ((data.products as any[])?.length > 0) stepsWithData.push('products');
         if ((data.faqs as any[])?.length > 0) stepsWithData.push('faqs');
-        if ((data.articles as any[])?.length > 0) stepsWithData.push('articles');
+        if (((data as any).help_articles as any[])?.length > 0) stepsWithData.push('help_articles');
         if ((data.reviews as any[])?.length > 0) stepsWithData.push('reviews');
-        if ((data.locations as any[])?.length > 0) stepsWithData.push('locations');
-        if ((data.team_members as any[])?.length > 0) stepsWithData.push('team');
         if ((data.awards as any[])?.length > 0) stepsWithData.push('awards');
         if ((data.media_mentions as any[])?.length > 0) stepsWithData.push('media');
         if ((data.case_studies as any[])?.length > 0) stepsWithData.push('cases');
@@ -292,27 +306,29 @@ export default function ProfilePage() {
       owner_user_id: user!.id,
       agency_user_id: HARDCODED_AGENCY_USER_ID,
       business_name: businessName,
-      legal_name: (formData as any).legal_name || null,
+      alternate_name: formData.alternate_name || null,
 
       business_url: formData.business_url || null,
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
-      hours: formData.hours || null,
+      year_established: formData.year_established || null,
       team_size: formData.team_size || null,
 
       phone: formData.phone || null,
       email: formData.email || null,
 
       services: formData.services || [],
-      products: formData.products || [],
       faqs: formData.faqs || [],
-      articles: formData.articles || [],
+      help_articles: formData.help_articles || [],
       reviews: formData.reviews || [],
       locations: formData.locations || [],
       team_members: formData.team_members || [],
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
+      
+      // Entity linking - individual social URLs are handled by buildClientProfilePayload filtering
+      other_profiles: formData.other_profiles || [],
     };
   };
 
@@ -320,23 +336,21 @@ export default function ProfilePage() {
     // Mark current step as completed if it has data
     const stepDataMap: Record<string, any> = {
       entity: formData.business_name?.trim(),
-      credentials: (formData.certifications?.length || 0) > 0 || 
-                   (formData.accreditations?.length || 0) > 0 || 
-                   (formData.insurance_accepted?.length || 0) > 0,
-      services: formData.services,
-      products: formData.products,
-      faqs: formData.faqs,
-      articles: formData.articles,
-      reviews: formData.reviews,
-      locations: formData.locations,
       team: formData.team_members,
+      entity_linking: formData.google_business_url || formData.linkedin_url || (formData.other_profiles?.length || 0) > 0,
+      credentials: (formData.certifications?.length || 0) > 0 || 
+                   (formData.accreditations?.length || 0) > 0,
+      services: formData.services,
+      faqs: formData.faqs,
+      help_articles: formData.help_articles,
+      reviews: formData.reviews,
       awards: formData.awards,
       media: formData.media_mentions,
       cases: formData.case_studies,
     };
 
     if (currentStep !== 'review') {
-      const hasData = currentStep === 'entity' || currentStep === 'credentials' 
+      const hasData = currentStep === 'entity' || currentStep === 'credentials' || currentStep === 'entity_linking'
         ? stepDataMap[currentStep]
         : stepDataMap[currentStep]?.length > 0;
       
@@ -478,14 +492,13 @@ export default function ProfilePage() {
 
   const stepLabels: Record<FormStep, string> = {
     entity: 'Organization',
+    team: formData.vertical === 'legal' ? 'Lawyers' : formData.vertical === 'medical' ? 'Healthcare Providers' : 'Associates',
+    entity_linking: 'Entity Linking',
     credentials: 'Credentials',
-    services: formData.vertical === 'legal' ? 'Practice Areas' : 'Services',
-    products: 'Products',
+    services: formData.vertical === 'legal' ? 'Practice Areas' : formData.vertical === 'medical' ? 'Specialties' : 'Services',
     faqs: 'FAQs',
-    articles: 'Articles',
+    help_articles: 'Help Articles',
     reviews: 'Reviews',
-    locations: 'Locations',
-    team: 'Team',
     awards: 'Awards',
     media: 'Media',
     cases: 'Case Studies',
@@ -554,6 +567,8 @@ export default function ProfilePage() {
 
             <div className="space-y-6">
               {currentStep === 'entity' && <EntityStep data={formData} onChange={updateFormData} errors={errors} />}
+              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => updateFormData({ team_members: t })} vertical={formData.vertical} />}
+              {currentStep === 'entity_linking' && <EntityLinkingStep data={formData} onChange={updateFormData} />}
               {currentStep === 'credentials' && <CredentialsStep data={formData} onChange={updateFormData} />}
               {currentStep === 'services' && (
                 formData.vertical === 'legal' ? (
@@ -570,12 +585,9 @@ export default function ProfilePage() {
                   <ServicesStep services={formData.services || []} onChange={(s) => updateFormData({ services: s })} />
                 )
               )}
-              {currentStep === 'products' && <ProductsStep products={formData.products || []} onChange={(p) => updateFormData({ products: p })} />}
               {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => updateFormData({ faqs: f })} />}
-              {currentStep === 'articles' && <ArticlesStep articles={formData.articles || []} onChange={(a) => updateFormData({ articles: a })} />}
+              {currentStep === 'help_articles' && <ArticlesStep articles={formData.help_articles || []} onChange={(a) => updateFormData({ help_articles: a })} />}
               {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => updateFormData({ reviews: r })} />}
-              {currentStep === 'locations' && <LocationsStep locations={formData.locations || []} onChange={(l) => updateFormData({ locations: l })} />}
-              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => updateFormData({ team_members: t })} />}
               {currentStep === 'awards' && <AwardsStep awards={formData.awards || []} onChange={(a) => updateFormData({ awards: a })} />}
               {currentStep === 'media' && <MediaStep mediaMentions={formData.media_mentions || []} onChange={(m) => updateFormData({ media_mentions: m })} />}
               {currentStep === 'cases' && <CasesStep caseStudies={formData.case_studies || []} onChange={(c) => updateFormData({ case_studies: c })} />}
