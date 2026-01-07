@@ -68,7 +68,7 @@ export default function Index() {
             Complete Your AI Visibility Profile
           </h1>
           <p className="text-primary-foreground/80 text-xl mt-2 inline-flex items-center gap-1">
-            <ArrowRight className="w-5 h-5" /> Return Anytime to Add Information
+            <ArrowRight className="w-5 h-5" /> Return Anytime to Add / Modify
           </p>
           <p className="text-primary-foreground/50 text-lg mt-1">Client Portal Sign-in</p>
         </header>
