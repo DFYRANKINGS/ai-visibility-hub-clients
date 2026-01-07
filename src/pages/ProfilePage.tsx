@@ -57,8 +57,8 @@ const saveProfileDraft = (userId: string, data: Partial<ClientProfile>) => {
 };
 
 const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
-  const businessName = data.business_name?.trim() || 'Profile';
-  const fileName = `${businessName} Master Profile.xlsx`;
+  const businessName = data.business_name?.trim();
+  const fileName = businessName ? `${businessName} AI Visibility Profile.xlsx` : 'AI Visibility Profile.xlsx';
 
   const workbook = XLSX.utils.book_new();
 
