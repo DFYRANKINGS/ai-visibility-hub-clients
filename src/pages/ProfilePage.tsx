@@ -62,73 +62,154 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
 
   const workbook = XLSX.utils.book_new();
 
-  // Organization Info sheet
-  const orgData = [
-    ['Business Name', data.business_name || ''],
-    ['Alternate Name', data.alternate_name || ''],
-    ['Business Vertical', data.vertical || ''],
-    ['Business URL', data.business_url || ''],
-    ['Short Description', data.short_description || ''],
-    ['Long Description', data.long_description || ''],
-    ['Team Size', data.team_size || ''],
-    ['Phone', data.phone || ''],
-    ['Email', data.email || ''],
+  // Helper to get first location for org sheet
+  const primaryLocation = (data.locations && data.locations.length > 0) ? data.locations[0] : null;
+
+  // Sheet 1: Organization (horizontal headers)
+  const orgHeaders = [
+    'business_name', 'main_website_url', 'logo_url', 'year_established', 'team_size',
+    'short_description', 'long_description', 'category', 'google_business_url', 'google_maps_url',
+    'apple_maps_url', 'yelp_url', 'bbb_url', 'linkedin_url', 'facebook_url', 'instagram_url',
+    'youtube_url', 'twitter_url', 'tiktok_url', 'pinterest_url', 'other_profiles',
+    'primary_phone', 'primary_email', 'address_street', 'address_city', 'address_state',
+    'address_postal', 'open_hours', 'service_areas'
   ];
-  const orgSheet = XLSX.utils.aoa_to_sheet(orgData);
+  const orgRow = [
+    data.business_name || '', data.business_url || '', data.logo_url || '',
+    data.year_established || '', data.team_size || '', data.short_description || '',
+    data.long_description || '', data.category || '', data.google_business_url || '',
+    data.google_maps_url || '', data.apple_maps_url || '', data.yelp_url || '',
+    data.bbb_url || '', data.linkedin_url || '', data.facebook_url || '',
+    data.instagram_url || '', data.youtube_url || '', data.twitter_url || '',
+    data.tiktok_url || '', data.pinterest_url || '',
+    (data.other_profiles || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
+    data.phone || '', data.email || '',
+    primaryLocation?.street || '', primaryLocation?.city || '', primaryLocation?.state || '',
+    primaryLocation?.postal_code || '', primaryLocation?.hours || '', ''
+  ];
+  const orgSheet = XLSX.utils.aoa_to_sheet([orgHeaders, orgRow]);
   XLSX.utils.book_append_sheet(workbook, orgSheet, 'Organization');
 
-  const addArraySheet = (sheetName: string, headers: string[], items: any[], mapper: (item: any) => any[]) => {
-    if (items && items.length > 0) {
-      const sheetData = [headers, ...items.map(mapper)];
-      const sheet = XLSX.utils.aoa_to_sheet(sheetData);
-      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
-    }
+  // Helper to add sheets with headers
+  const addSheet = (name: string, headers: string[], rows: any[][]) => {
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    XLSX.utils.book_append_sheet(workbook, sheet, name);
   };
 
-  addArraySheet('Services', ['Name', 'Category', 'Description'], data.services || [], 
-    (s) => [s.title || s.name || '', s.category || '', s.description || '']);
+  // Sheet 2: Locations
+  addSheet('Locations',
+    ['location_name', 'phone', 'email', 'address_street', 'address_city', 'address_state', 'address_postal', 'service_areas', 'open_hours', 'gmb_url'],
+    (data.locations || []).map((l: any) => [
+      l.location_name || l.name || '', l.phone || '', '', l.street || '', l.city || '',
+      l.state || '', l.postal_code || '', '', l.hours || '', ''
+    ])
+  );
 
-  addArraySheet('FAQs', ['Question', 'Answer'], data.faqs || [],
-    (f) => [f.question || '', f.answer || '']);
+  // Sheet 3: Services (expertise_name, description)
+  addSheet('Services',
+    ['expertise_name', 'description'],
+    (data.services || []).map((s: any) => [s.title || s.name || '', s.description || ''])
+  );
 
-  addArraySheet('Help Articles', ['Title', 'URL', 'Date Published', 'Content'], data.help_articles || [],
-    (a) => [a.title || '', a.url || '', a.published_date || '', a.article_content || '']);
+  // Sheet 4: Practice Areas
+  addSheet('Practice Areas',
+    ['name', 'case_types', 'jurisdiction', 'service_areas', 'description'],
+    (data.practice_areas || []).map((p: any) => [
+      p.name || '', p.case_types || '', p.jurisdiction || '', p.service_areas || '', p.description || ''
+    ])
+  );
 
-  addArraySheet('Reviews', ['Customer', 'Rating', 'Review', 'Date'], data.reviews || [],
-    (r) => [r.customer_name || '', r.rating || '', r.review_body || '', r.date || '']);
+  // Sheet 5: Medical Specialties
+  addSheet('Medical Specialties',
+    ['specialty_name', 'patient_population', 'conditions_treated', 'procedures_offered', 'description'],
+    (data.medical_specialties || []).map((s: any) => [
+      s.name || '', s.patient_population || '', s.conditions_treated || '', s.procedures_offered || '', s.description || ''
+    ])
+  );
 
-  addArraySheet('Locations', ['Name', 'Street', 'City', 'State', 'Postal Code', 'Phone', 'Hours'], data.locations || [],
-    (l) => [l.location_name || l.name || '', l.street || '', l.city || '', l.state || '', l.postal_code || '', l.phone || '', l.hours || '']);
+  // Sheet 6: Team Members (General)
+  addSheet('Team Members',
+    ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'license_number', 'profile_links', 'certifications', 'areas_of_expertise', 'bio'],
+    (data.team_members || []).map((t: any) => [
+      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', '',
+      (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
+      (t.certifications || []).map((c: any) => c.name || '').join(', '),
+      (t.specialties || []).join(', '), t.bio || ''
+    ])
+  );
 
-  addArraySheet('Team Members', ['Name', 'Role', 'Bio'], data.team_members || [],
-    (t) => [t.member_name || t.name || '', t.role || t.title || '', t.bio || '']);
+  // Sheet 7: Legal Team
+  addSheet('Legal Team',
+    ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'bar_number', 'profile_links', 'certifications', 'practice_areas', 'bio'],
+    (data.team_members || []).map((t: any) => [
+      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', t.bar_number || '',
+      (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
+      (t.certifications || []).map((c: any) => c.name || '').join(', '),
+      (t.specialties || []).join(', '), t.bio || ''
+    ])
+  );
 
-  addArraySheet('Awards', ['Name', 'Issuer', 'Date'], data.awards || [],
-    (a) => [a.name || '', a.issuer || '', a.date_awarded || '']);
+  // Sheet 8: Medical Team
+  addSheet('Medical Team',
+    ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'npi_number', 'profile_links', 'certifications', 'medical_specialties', 'bio'],
+    (data.team_members || []).map((t: any) => [
+      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', t.npi_number || '',
+      (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
+      (t.certifications || []).map((c: any) => c.name || '').join(', '),
+      (t.specialties || []).join(', '), t.bio || ''
+    ])
+  );
 
-  addArraySheet('Media Mentions', ['Title', 'Publication', 'URL', 'Date'], data.media_mentions || [],
-    (m) => [m.title || '', m.publications || '', m.url || '', m.date || '']);
+  // Sheet 9: FAQs
+  addSheet('FAQs',
+    ['question', 'answer', 'url'],
+    (data.faqs || []).map((f: any) => [f.question || '', f.answer || '', ''])
+  );
 
-  addArraySheet('Case Studies', ['Title', 'Summary', 'Outcome'], data.case_studies || [],
-    (c) => [c.title || '', c.summary || '', c.outcome_metrics || '']);
+  // Sheet 10: Help Articles
+  addSheet('Help Articles',
+    ['article_id', 'title', 'article_type', 'article_content', 'published_date', 'url', 'keywords', 'slug'],
+    (data.help_articles || []).map((a: any) => [
+      a.article_id || '', a.title || '', a.article_type || '', a.article_content || '',
+      a.published_date || '', a.url || '', a.keywords || '', a.slug || ''
+    ])
+  );
 
-  addArraySheet('Certifications', ['Name', 'Issuer', 'Date'], data.certifications || [],
-    (c) => [c.name || '', c.issuing_body || '', c.date_obtained || '']);
+  // Sheet 11: Reviews
+  addSheet('Reviews',
+    ['review_title', 'date', 'rating', 'review'],
+    (data.reviews || []).map((r: any) => [r.review_title || '', r.date || '', r.rating || '', r.review_body || ''])
+  );
 
-  addArraySheet('Accreditations', ['Name', 'Issuer', 'Date'], data.accreditations || [],
-    (a) => [a.name || '', a.accrediting_body || '', a.date_obtained || '']);
+  // Sheet 12: Case Studies
+  addSheet('Case Studies',
+    ['title', 'summary', 'outcome'],
+    (data.case_studies || []).map((c: any) => [c.title || '', c.summary || '', c.outcome_metrics || ''])
+  );
 
-  // Legal Practice Areas (top-level)
-  if (data.practice_areas && data.practice_areas.length > 0) {
-    addArraySheet('Practice Areas', ['Name', 'Case Types', 'Jurisdiction', 'Service Areas', 'Description'], data.practice_areas,
-      (p) => [p.name || '', p.case_types || '', p.jurisdiction || '', p.service_areas || '', p.description || '']);
-  }
+  // Sheet 13: Media Mentions
+  addSheet('Media Mentions',
+    ['title', 'publication', 'date', 'url'],
+    (data.media_mentions || []).map((m: any) => [m.title || '', m.publications || '', m.date || '', m.url || ''])
+  );
 
-  // Medical Specialties (top-level)
-  if (data.medical_specialties && data.medical_specialties.length > 0) {
-    addArraySheet('Medical Specialties', ['Name', 'Conditions Treated', 'Procedures Offered', 'Patient Population', 'Description'], data.medical_specialties,
-      (s) => [s.name || '', s.conditions_treated || '', s.procedures_offered || '', s.patient_population || '', s.description || '']);
-  }
+  // Sheet 14: Awards
+  addSheet('Awards',
+    ['award_name', 'issuer', 'date', 'url'],
+    (data.awards || []).map((a: any) => [a.name || '', a.issuer || '', a.date_awarded || '', a.award_url || ''])
+  );
+
+  // Sheet 15: Certifications
+  addSheet('Certifications',
+    ['certification_name', 'issuer', 'date', 'url'],
+    (data.certifications || []).map((c: any) => [c.name || '', c.issuing_body || '', c.date_obtained || '', ''])
+  );
+
+  // Sheet 16: Accreditations
+  addSheet('Accreditations',
+    ['accreditation_name', 'organization', 'date', 'url'],
+    (data.accreditations || []).map((a: any) => [a.name || '', a.accrediting_body || '', a.date_obtained || '', ''])
+  );
 
   XLSX.writeFile(workbook, fileName);
 };
