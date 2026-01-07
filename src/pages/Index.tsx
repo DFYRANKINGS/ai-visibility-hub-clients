@@ -64,13 +64,13 @@ export default function Index() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-4 shadow-glow">
             <Sparkles className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="font-heading text-2xl font-bold text-primary-foreground">
+          <h1 className="font-heading text-3xl font-bold text-primary-foreground">
             Complete Your AI Visibility Profile
           </h1>
-          <p className="text-primary-foreground/80 text-lg mt-2 inline-flex items-center gap-1">
-            <ArrowRight className="w-4 h-4" /> Return Anytime to Add Information
+          <p className="text-primary-foreground/80 text-xl mt-2 inline-flex items-center gap-1">
+            <ArrowRight className="w-5 h-5" /> Return Anytime to Add Information
           </p>
-          <p className="text-primary-foreground/50 text-base mt-1">Client Portal Sign-in</p>
+          <p className="text-primary-foreground/50 text-lg mt-1">Client Portal Sign-in</p>
         </header>
 
         <article className="bg-card rounded-2xl shadow-card p-8">
