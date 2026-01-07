@@ -18,8 +18,14 @@ export type SafeUpsertResult = {
 export async function safeUpsertClientProfile(
   rawPayload: Record<string, any>
 ): Promise<SafeUpsertResult> {
-  // Filter to allowed columns only
-  const payload = buildClientProfilePayload(rawPayload);
+  // Validate and filter payload - throws on unknown keys
+  let payload: Record<string, any>;
+  try {
+    payload = buildClientProfilePayload(rawPayload);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Payload validation failed';
+    return { error: { message } };
+  }
 
   console.log("[client_profile] upsert payload keys", Object.keys(payload));
 
