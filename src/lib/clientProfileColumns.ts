@@ -37,6 +37,7 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   'services',
   'practice_areas',
   'medical_specialties',
+  'products',
 
   // Content JSONB arrays
   'reviews',
@@ -45,6 +46,7 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   'awards',
   'faqs',
   'help_articles',
+  'articles',
 
   // Authority / social profiles
   'google_business_url',
