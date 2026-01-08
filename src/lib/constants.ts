@@ -1,5 +1,6 @@
 // Agency user ID for all client profiles created in the Client Portal.
 // The Agency App queries client_profile by agency_user_id = auth.uid() to see all client entities.
+// Rebuild trigger: env injection
 // This value must be configured via environment variable (client-side: VITE_AGENCY_USER_ID).
 //
 // IMPORTANT: Do not throw at module-import time (it would white-screen the app).
