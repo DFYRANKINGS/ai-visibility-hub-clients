@@ -12,14 +12,14 @@ export type SafeUpsertResult = {
  * Returns the entity_id to use for client_profile.
  */
 async function ensureBusinessEntity(
-  ownerUserId: string,
+  userId: string,
   businessName: string
 ): Promise<{ entity_id?: string; error?: { message: string } }> {
   // Check for existing entity
   const { data: existing, error: fetchError } = await supabase
     .from("business_entities")
     .select("id")
-    .eq("owner_user_id", ownerUserId)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (fetchError) {
@@ -36,7 +36,7 @@ async function ensureBusinessEntity(
   const { data: created, error: insertError } = await supabase
     .from("business_entities")
     .insert({
-      owner_user_id: ownerUserId,
+      user_id: userId,
       business_name: businessName || "Untitled Business",
     })
     .select("id")
