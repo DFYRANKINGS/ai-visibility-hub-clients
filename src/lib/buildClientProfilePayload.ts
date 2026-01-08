@@ -3,6 +3,7 @@ import { CLIENT_PROFILE_COLUMNS } from './clientProfileColumns';
 // Keys that exist in UI state but are NOT database columns
 // These are assembled into JSONB or are purely UI helpers - safe to ignore
 const UI_ONLY_KEYS = new Set([
+  'id', // UI/XLSX row identifier - not a payload column
   'address_street',
   'address_city',
   'address_state',
