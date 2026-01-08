@@ -37,7 +37,7 @@ async function ensureBusinessEntity(
     .from("business_entities")
     .insert({
       user_id: userId,
-      business_name: businessName || "Untitled Business",
+      entity_name: businessName || "Untitled Business",
     })
     .select("id")
     .single();
