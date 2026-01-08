@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { buildClientProfilePayload } from './buildClientProfilePayload';
+import { HARDCODED_AGENCY_USER_ID } from './constants';
 
 export type SafeUpsertResult = {
   id?: string;
@@ -37,6 +38,7 @@ async function ensureBusinessEntity(
     .from("business_entities")
     .insert({
       user_id: userId,
+      agency_user_id: HARDCODED_AGENCY_USER_ID,
       entity_name: businessName || "Untitled Business",
     })
     .select("id")
