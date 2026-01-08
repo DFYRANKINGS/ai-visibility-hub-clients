@@ -23,7 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { Send, Sparkles, LogOut, Loader2, Save, Menu, X, Download, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { safeUpsertClientProfile } from '@/lib/clientProfileUpsert';
-import { HARDCODED_AGENCY_USER_ID } from '@/lib/constants';
+import { AGENCY_USER_ID } from '@/lib/constants';
 import { parseXlsxToProfile, readFileAsArrayBuffer } from '@/lib/xlsxImport';
 
 
@@ -229,7 +229,7 @@ export default function ProfilePage() {
 
   const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>(() => ({
     entity_id: crypto.randomUUID(),
-    agency_user_id: HARDCODED_AGENCY_USER_ID,
+    agency_user_id: AGENCY_USER_ID,
     services: [], faqs: [], help_articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
     certifications: [], accreditations: [],
@@ -285,7 +285,7 @@ export default function ProfilePage() {
         const fromDb: Partial<ClientProfile> = {
           entity_id: (data as any).entity_id,
           owner_user_id: (data as any).owner_user_id,
-          agency_user_id: (data as any).agency_user_id ?? HARDCODED_AGENCY_USER_ID,
+          agency_user_id: (data as any).agency_user_id ?? AGENCY_USER_ID,
 
           business_name: (data as any).business_name,
           alternate_name: (data as any).alternate_name || undefined,
@@ -385,7 +385,7 @@ export default function ProfilePage() {
       ...(profileId ? { id: profileId } : {}),
       entity_id: entityId,
       owner_user_id: user!.id,
-      agency_user_id: HARDCODED_AGENCY_USER_ID,
+      agency_user_id: AGENCY_USER_ID,
       business_name: businessName,
       alternate_name: formData.alternate_name || null,
 
