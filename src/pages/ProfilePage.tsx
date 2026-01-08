@@ -215,6 +215,22 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
 };
 
 export default function ProfilePage() {
+  const agencyUserId = AGENCY_USER_ID;
+
+  if (!agencyUserId) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center p-6">
+        <section className="w-full max-w-lg bg-card rounded-2xl shadow-card p-6">
+          <h1 className="font-heading text-2xl font-semibold text-foreground">Configuration required</h1>
+          <p className="mt-2 text-muted-foreground">
+            This app requires <code className="font-mono">VITE_AGENCY_USER_ID</code> to be set in the environment.
+            Add it and redeploy (then refresh).
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   const { user, loading: authLoading, signOut } = useAuth();
   const [currentStep, setCurrentStep] = useState<FormStep>('entity');
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
@@ -229,7 +245,7 @@ export default function ProfilePage() {
 
   const [formData, setFormDataInternal] = useState<Partial<ClientProfile>>(() => ({
     entity_id: crypto.randomUUID(),
-    agency_user_id: AGENCY_USER_ID,
+    agency_user_id: agencyUserId,
     services: [], faqs: [], help_articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
     certifications: [], accreditations: [],
@@ -285,7 +301,7 @@ export default function ProfilePage() {
         const fromDb: Partial<ClientProfile> = {
           entity_id: (data as any).entity_id,
           owner_user_id: (data as any).owner_user_id,
-          agency_user_id: (data as any).agency_user_id ?? AGENCY_USER_ID,
+          agency_user_id: (data as any).agency_user_id ?? agencyUserId,
 
           business_name: (data as any).business_name,
           alternate_name: (data as any).alternate_name || undefined,
@@ -385,7 +401,7 @@ export default function ProfilePage() {
       ...(profileId ? { id: profileId } : {}),
       entity_id: entityId,
       owner_user_id: user!.id,
-      agency_user_id: AGENCY_USER_ID,
+      agency_user_id: agencyUserId,
       business_name: businessName,
       alternate_name: formData.alternate_name || null,
 

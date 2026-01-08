@@ -16,6 +16,10 @@ async function ensureBusinessEntity(
   userId: string,
   businessName: string
 ): Promise<{ entity_id?: string; error?: { message: string } }> {
+  if (!AGENCY_USER_ID) {
+    return { error: { message: "Missing required configuration: VITE_AGENCY_USER_ID" } };
+  }
+
   // Check for existing entity
   const { data: existing, error: fetchError } = await supabase
     .from("business_entities")
