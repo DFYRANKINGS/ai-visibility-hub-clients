@@ -49,7 +49,9 @@ export interface Location {
   state: string;
   postal_code: string;
   phone?: string;
+  email?: string;
   hours?: string;
+  service_areas?: string;
 }
 
 // TeamMember (team_members column - label changes per vertical but same DB column)
