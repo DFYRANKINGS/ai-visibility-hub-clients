@@ -25,10 +25,10 @@ async function ensureBusinessEntity(
   
   console.log("[business_entities] using agency_user_id:", agencyUserId);
 
-  // Check for existing entity
+  // Check for existing entity (fetch agency_user_id so we can backfill before returning)
   const { data: existing, error: fetchError } = await supabase
     .from("business_entities")
-    .select("id")
+    .select("id, agency_user_id")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -37,31 +37,33 @@ async function ensureBusinessEntity(
     return { error: { message: fetchError.message } };
   }
 
+  // If an entity already exists, ensure agency_user_id is populated BEFORE returning
   if (existing?.id) {
     console.log("[business_entities] found existing entity", existing.id);
-    
-    // Update agency_user_id if it's missing on existing entity
-    const { error: updateError } = await supabase
-      .from("business_entities")
-      .update({ agency_user_id: agencyUserId })
-      .eq("id", existing.id)
-      .is("agency_user_id", null);
-    
-    if (updateError) {
-      console.warn("[business_entities] failed to backfill agency_user_id", updateError);
-    } else {
+
+    if (existing.agency_user_id == null) {
+      const { error: updateError } = await supabase
+        .from("business_entities")
+        .update({ agency_user_id: import.meta.env.VITE_AGENCY_USER_ID })
+        .eq("id", existing.id);
+
+      if (updateError) {
+        console.error("[business_entities] backfill agency_user_id failed", updateError);
+        return { error: { message: updateError.message } };
+      }
+
       console.log("[business_entities] backfilled agency_user_id on existing entity");
     }
-    
+
     return { entity_id: existing.id };
   }
 
-  // Create new entity - use the locally-read agencyUserId, not the module constant
+  // Create new entity - always include agency_user_id from VITE_AGENCY_USER_ID
   const { data: created, error: insertError } = await supabase
     .from("business_entities")
     .insert({
       user_id: userId,
-      agency_user_id: agencyUserId,
+      agency_user_id: import.meta.env.VITE_AGENCY_USER_ID,
       entity_name: businessName || "Untitled Business",
     })
     .select("id")
