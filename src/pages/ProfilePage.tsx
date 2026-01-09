@@ -308,6 +308,7 @@ export default function ProfilePage() {
           vertical: (data as any).vertical || undefined,
 
           business_url: (data as any).business_url || undefined,
+          logo_url: (data as any).logo_url || undefined,
           short_description: data.short_description || undefined,
           long_description: data.long_description || undefined,
           year_established: (data as any).year_established || undefined,
@@ -391,6 +392,13 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const normalizeHttpUrl = (value?: string | null) => {
+    const v = (value ?? '').trim();
+    if (!v) return null;
+    if (/^https?:\/\//i.test(v)) return v;
+    return `https://${v}`;
+  };
+
   const buildClientProfileUpsertPayload = () => {
     const businessName = (formData.business_name ?? '').trim() || 'Untitled';
 
@@ -406,6 +414,7 @@ export default function ProfilePage() {
       alternate_name: formData.alternate_name || null,
 
       business_url: formData.business_url || null,
+      logo_url: normalizeHttpUrl(formData.logo_url),
       short_description: formData.short_description || null,
       long_description: formData.long_description || null,
       year_established: formData.year_established || null,
