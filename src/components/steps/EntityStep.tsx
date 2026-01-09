@@ -66,8 +66,8 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
 
           <FormField label="Logo URL">
             <Input
-              type="url"
-              placeholder="https://..."
+              type="text"
+              placeholder="https://www.example.com/logo.png"
               value={data.logo_url || ''}
               onChange={(e) => handleChange('logo_url', e.target.value)}
             />
