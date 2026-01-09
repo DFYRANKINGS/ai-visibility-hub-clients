@@ -23,7 +23,7 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(services.length > 0 ? 0 : null);
 
   const addService = () => {
-    onChange([...services, { ...emptyService, service_id: crypto.randomUUID() }]);
+    onChange([...services, { ...emptyService, service_id: crypto.randomUUID(), name: '' }]);
     setExpandedIndex(services.length);
   };
 
@@ -35,7 +35,14 @@ export function ServicesStep({ services, onChange }: ServicesStepProps) {
   };
 
   const updateService = (index: number, field: keyof Service, value: string) => {
-    const updated = services.map((svc, i) => i === index ? { ...svc, [field]: value } : svc);
+    const updated = services.map((svc, i) => {
+      if (i !== index) return svc;
+      // Keep both 'title' and 'name' in sync for Agency App compatibility
+      if (field === 'title') {
+        return { ...svc, title: value, name: value };
+      }
+      return { ...svc, [field]: value };
+    });
     onChange(updated);
   };
 
