@@ -317,7 +317,11 @@ export default function ProfilePage() {
           phone: data.phone || undefined,
           email: data.email || undefined,
 
-          services: (data.services as any[]) || [],
+          services: ((data.services as any[]) || []).map((s: any) => ({
+            ...s,
+            title: (s?.title ?? s?.name ?? ''),
+            name: (s?.name ?? s?.title ?? ''),
+          })),
           faqs: (data.faqs as any[]) || [],
           help_articles: ((data as any).help_articles as any[]) || [],
           reviews: (data.reviews as any[]) || [],
@@ -423,7 +427,11 @@ export default function ProfilePage() {
       phone: formData.phone || null,
       email: formData.email || null,
 
-      services: formData.services || [],
+      services: (formData.services || []).map((s: any) => ({
+        ...s,
+        title: (s?.title ?? s?.name ?? ''),
+        name: (s?.name ?? s?.title ?? ''),
+      })),
       faqs: formData.faqs || [],
       help_articles: formData.help_articles || [],
       reviews: formData.reviews || [],
