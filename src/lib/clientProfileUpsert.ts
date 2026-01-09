@@ -39,6 +39,20 @@ async function ensureBusinessEntity(
 
   if (existing?.id) {
     console.log("[business_entities] found existing entity", existing.id);
+    
+    // Update agency_user_id if it's missing on existing entity
+    const { error: updateError } = await supabase
+      .from("business_entities")
+      .update({ agency_user_id: agencyUserId })
+      .eq("id", existing.id)
+      .is("agency_user_id", null);
+    
+    if (updateError) {
+      console.warn("[business_entities] failed to backfill agency_user_id", updateError);
+    } else {
+      console.log("[business_entities] backfilled agency_user_id on existing entity");
+    }
+    
     return { entity_id: existing.id };
   }
 
