@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { buildClientProfilePayload } from './buildClientProfilePayload';
-import { AGENCY_USER_ID } from './constants';
 
 export type SafeUpsertResult = {
   id?: string;
@@ -16,9 +15,15 @@ async function ensureBusinessEntity(
   userId: string,
   businessName: string
 ): Promise<{ entity_id?: string; error?: { message: string } }> {
-  if (!AGENCY_USER_ID) {
+  // Read env var directly to ensure it's available at insert time
+  const agencyUserId = import.meta.env.VITE_AGENCY_USER_ID as string | undefined;
+  
+  if (!agencyUserId) {
+    console.error("[business_entities] VITE_AGENCY_USER_ID is missing or empty");
     return { error: { message: "Missing required configuration: VITE_AGENCY_USER_ID" } };
   }
+  
+  console.log("[business_entities] using agency_user_id:", agencyUserId);
 
   // Check for existing entity
   const { data: existing, error: fetchError } = await supabase
@@ -37,12 +42,12 @@ async function ensureBusinessEntity(
     return { entity_id: existing.id };
   }
 
-  // Create new entity
+  // Create new entity - use the locally-read agencyUserId, not the module constant
   const { data: created, error: insertError } = await supabase
     .from("business_entities")
     .insert({
       user_id: userId,
-      agency_user_id: AGENCY_USER_ID,
+      agency_user_id: agencyUserId,
       entity_name: businessName || "Untitled Business",
     })
     .select("id")
