@@ -1,4 +1,4 @@
-import { ClientProfile, BusinessVertical } from '@/types/profile';
+import { ClientProfile, BusinessVertical, Location } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,22 @@ interface EntityStepProps {
 export function EntityStep({ data, onChange, errors }: EntityStepProps) {
   const handleChange = (field: keyof ClientProfile, value: string | number) => {
     onChange({ ...data, [field]: value });
+  };
+
+  // Get primary location (first location or empty)
+  const primaryLocation: Partial<Location> = data.locations?.[0] || {};
+
+  // Update primary location fields - merges into locations[0]
+  const handleLocationChange = (field: keyof Location, value: string) => {
+    const currentLocations = data.locations || [];
+    const updatedPrimary: Location = {
+      ...(currentLocations[0] || { street: '', city: '', state: '', postal_code: '' }),
+      location_id: currentLocations[0]?.location_id || crypto.randomUUID(),
+      location_name: currentLocations[0]?.location_name || 'Primary Location',
+      [field]: value,
+    };
+    const updatedLocations = [updatedPrimary, ...currentLocations.slice(1)];
+    onChange({ ...data, locations: updatedLocations });
   };
 
   return (
@@ -84,24 +100,6 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             />
           </FormField>
 
-          <FormField label="Email">
-            <Input
-              type="email"
-              placeholder="contact@example.com"
-              value={data.email || ''}
-              onChange={(e) => handleChange('email', e.target.value)}
-            />
-          </FormField>
-
-          <FormField label="Phone">
-            <Input
-              type="tel"
-              placeholder="(555) 123-4567"
-              value={data.phone || ''}
-              onChange={(e) => handleChange('phone', e.target.value)}
-            />
-          </FormField>
-
           <FormField label="Team Size">
             <Input
               type="number"
@@ -130,6 +128,79 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
               value={data.long_description || ''}
               onChange={(e) => handleChange('long_description', e.target.value)}
               className="h-32"
+            />
+          </FormField>
+        </div>
+      </FormCard>
+
+      <FormCard 
+        title="Primary Location" 
+        description="Enter your main business location, contact info, and hours."
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Phone">
+            <Input
+              type="tel"
+              placeholder="(555) 123-4567"
+              value={data.phone || ''}
+              onChange={(e) => handleChange('phone', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Email">
+            <Input
+              type="email"
+              placeholder="contact@example.com"
+              value={data.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Street Address" className="md:col-span-2">
+            <Input
+              placeholder="123 Main Street"
+              value={primaryLocation.street || ''}
+              onChange={(e) => handleLocationChange('street', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="City">
+            <Input
+              placeholder="New York"
+              value={primaryLocation.city || ''}
+              onChange={(e) => handleLocationChange('city', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="State">
+            <Input
+              placeholder="NY"
+              value={primaryLocation.state || ''}
+              onChange={(e) => handleLocationChange('state', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Postal Code">
+            <Input
+              placeholder="10001"
+              value={primaryLocation.postal_code || ''}
+              onChange={(e) => handleLocationChange('postal_code', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Hours">
+            <Input
+              placeholder="Mon-Fri 9AM-5PM"
+              value={primaryLocation.hours || ''}
+              onChange={(e) => handleLocationChange('hours', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Service Areas" hint="Comma-separated areas served" className="md:col-span-2">
+            <Input
+              placeholder="Manhattan, Brooklyn, Queens"
+              value={(primaryLocation as any).service_areas || ''}
+              onChange={(e) => handleLocationChange('service_areas' as keyof Location, e.target.value)}
             />
           </FormField>
         </div>

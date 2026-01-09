@@ -435,7 +435,33 @@ export default function ProfilePage() {
       faqs: formData.faqs || [],
       help_articles: formData.help_articles || [],
       reviews: formData.reviews || [],
-      locations: formData.locations || [],
+      // Merge phone + email into locations[0] for Agency App compatibility
+      locations: (() => {
+        const locs = formData.locations || [];
+        if (locs.length === 0) {
+          // If no locations but we have phone/email, create a primary location
+          if (formData.phone || formData.email) {
+            return [{
+              location_id: crypto.randomUUID(),
+              location_name: 'Primary Location',
+              street: '',
+              city: '',
+              state: '',
+              postal_code: '',
+              phone: formData.phone || '',
+              email: formData.email || '',
+              hours: '',
+            }];
+          }
+          return [];
+        }
+        // Merge phone/email into first location
+        return locs.map((loc: any, idx: number) => 
+          idx === 0 
+            ? { ...loc, phone: formData.phone || loc.phone || '', email: formData.email || loc.email || '' }
+            : loc
+        );
+      })(),
       team_members: formData.team_members || [],
       awards: formData.awards || [],
       media_mentions: formData.media_mentions || [],
