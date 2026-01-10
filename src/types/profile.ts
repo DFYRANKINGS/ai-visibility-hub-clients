@@ -72,6 +72,8 @@ export interface TeamMember {
   role?: string;
   title?: string;
   bio?: string;
+  license_number?: string;       // business vertical only
+  license_issuer?: string;       // business vertical only
   linkedin_url?: string;
   photo_url?: string;
   npi_number?: string;

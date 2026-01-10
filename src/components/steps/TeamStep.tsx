@@ -128,12 +128,16 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   <FormField label="Role/Title" required>
                     <Input placeholder="Partner, Associate, etc." value={member.role || member.title || ''} onChange={(e) => updateMember(index, 'role', e.target.value)} />
                   </FormField>
-                  <FormField label="LinkedIn URL">
-                    <Input type="url" placeholder="https://linkedin.com/in/..." value={member.linkedin_url || ''} onChange={(e) => updateMember(index, 'linkedin_url', e.target.value)} />
-                  </FormField>
-                  <FormField label="Photo URL">
-                    <Input type="url" placeholder="https://..." value={member.photo_url || ''} onChange={(e) => updateMember(index, 'photo_url', e.target.value)} />
-                  </FormField>
+                  {vertical === 'general' && (
+                    <>
+                      <FormField label="License Number">
+                        <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
+                      </FormField>
+                      <FormField label="License Issuing Authority">
+                        <Input placeholder="State Board, Agency, etc." value={member.license_issuer || ''} onChange={(e) => updateMember(index, 'license_issuer', e.target.value)} />
+                      </FormField>
+                    </>
+                  )}
                   {vertical === 'medical' && (
                     <FormField label="NPI Number">
                       <Input placeholder="Optional" value={member.npi_number || ''} onChange={(e) => updateMember(index, 'npi_number', e.target.value)} />
@@ -144,6 +148,12 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                       <Input placeholder="Optional" value={member.bar_number || ''} onChange={(e) => updateMember(index, 'bar_number', e.target.value)} />
                     </FormField>
                   )}
+                  <FormField label="LinkedIn URL">
+                    <Input type="url" placeholder="https://linkedin.com/in/..." value={member.linkedin_url || ''} onChange={(e) => updateMember(index, 'linkedin_url', e.target.value)} />
+                  </FormField>
+                  <FormField label="Photo URL">
+                    <Input type="url" placeholder="https://..." value={member.photo_url || ''} onChange={(e) => updateMember(index, 'photo_url', e.target.value)} />
+                  </FormField>
                   <FormField label="Specialties" hint="Comma-separated" className="md:col-span-2">
                     <Input
                       placeholder="Corporate Law, M&A, etc."
