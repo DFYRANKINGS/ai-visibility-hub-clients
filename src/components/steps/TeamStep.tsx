@@ -129,14 +129,9 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                     <Input placeholder="Partner, Associate, etc." value={member.role || member.title || ''} onChange={(e) => updateMember(index, 'role', e.target.value)} />
                   </FormField>
                   {vertical === 'general' && (
-                    <>
-                      <FormField label="License Number">
-                        <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
-                      </FormField>
-                      <FormField label="License Issuing Authority">
-                        <Input placeholder="State Board, Agency, etc." value={member.license_issuer || ''} onChange={(e) => updateMember(index, 'license_issuer', e.target.value)} />
-                      </FormField>
-                    </>
+                    <FormField label="License Number">
+                      <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
+                    </FormField>
                   )}
                   {vertical === 'medical' && (
                     <FormField label="NPI Number">
