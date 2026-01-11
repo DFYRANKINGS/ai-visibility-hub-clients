@@ -561,24 +561,21 @@ export default function ProfilePage() {
 
     if (result.id && !profileId) setProfileId(result.id);
 
-    // Read-after-write verification for credentials (helps catch backend mismatch silently dropping JSONB)
+    // Read-after-write verification (helps catch backend mismatch silently dropping fields)
     if (result.entity_id) {
       const { data: verifyRow, error: verifyError } = await supabase
         .from('client_profile')
-        .select('certifications, accreditations')
+        .select(
+          'certifications, accreditations, google_business_url, google_maps_url, yelp_url, bbb_url, apple_maps_url, linkedin_url, facebook_url, instagram_url, youtube_url, twitter_url, tiktok_url, pinterest_url, other_profiles'
+        )
         .eq('entity_id', result.entity_id)
         .maybeSingle();
 
       if (verifyError) {
-        console.warn('[client_profile] verify credentials failed', verifyError);
+        console.warn('[client_profile] verify after save failed', verifyError);
       } else if (verifyRow) {
         const savedCertifications = ((verifyRow as any).certifications as any[]) || [];
         const savedAccreditations = ((verifyRow as any).accreditations as any[]) || [];
-
-        console.log('[client_profile] verify credentials counts', {
-          certifications: savedCertifications.length,
-          accreditations: savedAccreditations.length,
-        });
 
         // Sync local state to what is actually stored
         setFormDataInternal((prev) => ({
@@ -586,7 +583,52 @@ export default function ProfilePage() {
           entity_id: result.entity_id,
           certifications: savedCertifications,
           accreditations: savedAccreditations,
+
+          google_business_url: (verifyRow as any).google_business_url ?? undefined,
+          google_maps_url: (verifyRow as any).google_maps_url ?? undefined,
+          yelp_url: (verifyRow as any).yelp_url ?? undefined,
+          bbb_url: (verifyRow as any).bbb_url ?? undefined,
+          apple_maps_url: (verifyRow as any).apple_maps_url ?? undefined,
+          linkedin_url: (verifyRow as any).linkedin_url ?? undefined,
+          facebook_url: (verifyRow as any).facebook_url ?? undefined,
+          instagram_url: (verifyRow as any).instagram_url ?? undefined,
+          youtube_url: (verifyRow as any).youtube_url ?? undefined,
+          twitter_url: (verifyRow as any).twitter_url ?? undefined,
+          tiktok_url: (verifyRow as any).tiktok_url ?? undefined,
+          pinterest_url: (verifyRow as any).pinterest_url ?? undefined,
+          other_profiles: ((verifyRow as any).other_profiles as any[]) || [],
         }));
+
+        // If the user attempted to save links but backend returned empty/null, warn loudly.
+        const attemptedLinkKeys = [
+          'google_business_url',
+          'google_maps_url',
+          'yelp_url',
+          'bbb_url',
+          'apple_maps_url',
+          'linkedin_url',
+          'facebook_url',
+          'instagram_url',
+          'youtube_url',
+          'twitter_url',
+          'tiktok_url',
+          'pinterest_url',
+        ] as const;
+
+        const missingAfterSave = attemptedLinkKeys.filter((k) => {
+          const intended = (profilePayload as any)[k];
+          const stored = (verifyRow as any)[k];
+          return Boolean(intended) && !stored;
+        });
+
+        if (missingAfterSave.length > 0) {
+          toast({
+            title: 'Links did not persist',
+            description: `Saved, but these fields came back empty: ${missingAfterSave.join(', ')}. This usually means the backend table is missing these columns or is blocking updates.`,
+            variant: 'destructive',
+          });
+          return;
+        }
       }
     }
 
