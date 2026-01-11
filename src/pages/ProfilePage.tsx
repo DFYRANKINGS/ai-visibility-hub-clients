@@ -524,6 +524,16 @@ export default function ProfilePage() {
 
     const profilePayload = buildClientProfileUpsertPayload();
 
+    console.log("[client_profile] save: payload keys", Object.keys(profilePayload));
+    console.log("[client_profile] save: credentials counts", {
+      certifications: Array.isArray((profilePayload as any).certifications)
+        ? (profilePayload as any).certifications.length
+        : "(missing)",
+      accreditations: Array.isArray((profilePayload as any).accreditations)
+        ? (profilePayload as any).accreditations.length
+        : "(missing)",
+    });
+
     const result = await safeUpsertClientProfile(profilePayload);
 
     setSaving(false);
@@ -538,6 +548,35 @@ export default function ProfilePage() {
     }
 
     if (result.id && !profileId) setProfileId(result.id);
+
+    // Read-after-write verification for credentials (helps catch backend mismatch silently dropping JSONB)
+    if (result.entity_id) {
+      const { data: verifyRow, error: verifyError } = await supabase
+        .from('client_profile')
+        .select('certifications, accreditations')
+        .eq('entity_id', result.entity_id)
+        .maybeSingle();
+
+      if (verifyError) {
+        console.warn('[client_profile] verify credentials failed', verifyError);
+      } else if (verifyRow) {
+        const savedCertifications = ((verifyRow as any).certifications as any[]) || [];
+        const savedAccreditations = ((verifyRow as any).accreditations as any[]) || [];
+
+        console.log('[client_profile] verify credentials counts', {
+          certifications: savedCertifications.length,
+          accreditations: savedAccreditations.length,
+        });
+
+        // Sync local state to what is actually stored
+        setFormDataInternal((prev) => ({
+          ...prev,
+          entity_id: result.entity_id,
+          certifications: savedCertifications,
+          accreditations: savedAccreditations,
+        }));
+      }
+    }
 
     // Mark current step as completed
     if (!completedSteps.includes(currentStep) && currentStep !== 'review') {
