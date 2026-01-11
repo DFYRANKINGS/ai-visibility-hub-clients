@@ -448,16 +448,25 @@ export default function ProfilePage() {
         title: (s?.title ?? s?.name ?? ''),
         name: (s?.name ?? s?.title ?? ''),
       })),
-      // Convert comma-separated strings to arrays for Agency App compatibility
-      practice_areas: (formData.practice_areas || []).map((pa: any) => ({
-        ...pa,
-        case_types: typeof pa.case_types === 'string' 
+      // Practice areas: store arrays (and also camelCase aliases) for cross-app compatibility
+      practice_areas: (formData.practice_areas || []).map((pa: any) => {
+        const caseTypesArr = typeof pa.case_types === 'string'
           ? pa.case_types.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (pa.case_types || []),
-        service_areas: typeof pa.service_areas === 'string'
+          : (Array.isArray(pa.case_types) ? pa.case_types : []);
+
+        const serviceAreasArr = typeof pa.service_areas === 'string'
           ? pa.service_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (pa.service_areas || []),
-      })),
+          : (Array.isArray(pa.service_areas) ? pa.service_areas : []);
+
+        return {
+          ...pa,
+          case_types: caseTypesArr,
+          service_areas: serviceAreasArr,
+          // Defensive aliases if the Agency App expects camelCase keys
+          caseTypes: caseTypesArr,
+          serviceAreas: serviceAreasArr,
+        };
+      }),
       medical_specialties: (formData.medical_specialties || []).map((ms: any) => ({
         ...ms,
         conditions_treated: typeof ms.conditions_treated === 'string'
