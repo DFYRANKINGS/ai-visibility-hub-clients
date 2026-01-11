@@ -9,6 +9,16 @@ export interface Service {
   featured?: boolean;
 }
 
+// Product (business vertical)
+export interface Product {
+  product_id?: string;
+  name: string;
+  description?: string;
+  price?: string;
+  category?: string;
+  url?: string;
+}
+
 // FAQ
 export interface FAQ {
   question: string;
@@ -222,6 +232,7 @@ export interface ClientProfile {
   services?: Service[];  // business vertical only
   practice_areas?: PracticeArea[];  // legal vertical only
   medical_specialties?: MedicalSpecialty[];  // medical vertical only
+  products?: Product[];  // business vertical only
   
   // Content JSONB arrays
   faqs?: FAQ[];
