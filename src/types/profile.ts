@@ -118,9 +118,9 @@ export interface Certification {
 
 export interface Accreditation {
   name: string;
-  accrediting_body?: string;
+  organization?: string;
   date_obtained?: string;
-  expiration_date?: string;
+  url?: string;
 }
 
 // Legal Practice Area for vertical === 'legal'
