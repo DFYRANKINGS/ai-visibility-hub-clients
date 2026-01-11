@@ -472,7 +472,19 @@ export default function ProfilePage() {
       media_mentions: formData.media_mentions || [],
       case_studies: formData.case_studies || [],
       
-      // Entity linking - individual social URLs are handled by buildClientProfilePayload filtering
+      // Entity linking URLs
+      google_business_url: formData.google_business_url || null,
+      google_maps_url: formData.google_maps_url || null,
+      yelp_url: formData.yelp_url || null,
+      bbb_url: formData.bbb_url || null,
+      apple_maps_url: formData.apple_maps_url || null,
+      linkedin_url: formData.linkedin_url || null,
+      facebook_url: formData.facebook_url || null,
+      instagram_url: formData.instagram_url || null,
+      youtube_url: formData.youtube_url || null,
+      twitter_url: formData.twitter_url || null,
+      tiktok_url: formData.tiktok_url || null,
+      pinterest_url: formData.pinterest_url || null,
       other_profiles: formData.other_profiles || [],
     };
   };
