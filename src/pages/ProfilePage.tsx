@@ -595,6 +595,22 @@ export default function ProfilePage() {
 
       if (verifyError) {
         console.warn('[client_profile] verify after save failed', verifyError);
+
+        const msg = (verifyError as any)?.message ? String((verifyError as any).message) : '';
+        const looksLikeMissingColumn =
+          /column .* does not exist/i.test(msg) ||
+          /could not find the '.*' column/i.test(msg) ||
+          /unknown column/i.test(msg);
+
+        if (looksLikeMissingColumn) {
+          toast({
+            title: 'Saved, but fields did not persist',
+            description:
+              'Your backend does not appear to have one or more required columns on client_profile (e.g., practice_areas / medical_specialties). Add them as JSONB columns with default [] so the app can store this data.',
+            variant: 'destructive',
+          });
+          return;
+        }
       } else if (verifyRow) {
         const savedCertifications = ((verifyRow as any).certifications as any[]) || [];
         const savedAccreditations = ((verifyRow as any).accreditations as any[]) || [];
@@ -625,7 +641,23 @@ export default function ProfilePage() {
           other_profiles: ((verifyRow as any).other_profiles as any[]) || [],
         }));
 
-        // If the user attempted to save links but backend returned empty/null, warn loudly.
+        // If the user attempted to save vertical arrays or links but backend returned empty/null, warn loudly.
+        const missingAfterSave: string[] = [];
+
+        const intendedPracticeAreas = Array.isArray((profilePayload as any).practice_areas)
+          ? ((profilePayload as any).practice_areas as any[]).length
+          : 0;
+        const intendedMedicalSpecialties = Array.isArray((profilePayload as any).medical_specialties)
+          ? ((profilePayload as any).medical_specialties as any[]).length
+          : 0;
+
+        if (intendedPracticeAreas > 0 && savedPracticeAreas.length === 0) {
+          missingAfterSave.push('practice_areas');
+        }
+        if (intendedMedicalSpecialties > 0 && savedMedicalSpecialties.length === 0) {
+          missingAfterSave.push('medical_specialties');
+        }
+
         const attemptedLinkKeys = [
           'google_business_url',
           'google_maps_url',
@@ -641,16 +673,18 @@ export default function ProfilePage() {
           'pinterest_url',
         ] as const;
 
-        const missingAfterSave = attemptedLinkKeys.filter((k) => {
+        for (const k of attemptedLinkKeys) {
           const intended = (profilePayload as any)[k];
           const stored = (verifyRow as any)[k];
-          return Boolean(intended) && !stored;
-        });
+          if (Boolean(intended) && !stored) missingAfterSave.push(k);
+        }
 
         if (missingAfterSave.length > 0) {
           toast({
-            title: 'Links did not persist',
-            description: `Saved, but these fields came back empty: ${missingAfterSave.join(', ')}. This usually means the backend table is missing these columns or is blocking updates.`,
+            title: 'Fields did not persist',
+            description: `Saved, but these came back empty from the database: ${missingAfterSave.join(
+              ', '
+            )}. This usually means the backend table is missing these columns or is blocking updates.`,
             variant: 'destructive',
           });
           return;
