@@ -74,8 +74,11 @@ export function ArticlesStep({ articles, onChange }: ArticlesStepProps) {
                   <FormField label="URL">
                     <Input type="url" placeholder="https://..." value={article.url || ''} onChange={(e) => updateArticle(index, 'url', e.target.value)} />
                   </FormField>
-                  <FormField label="Keywords" hint="Comma-separated" className="md:col-span-2">
+                  <FormField label="Keywords" hint="Comma-separated">
                     <Input placeholder="keyword1, keyword2" value={article.keywords || ''} onChange={(e) => updateArticle(index, 'keywords', e.target.value)} />
+                  </FormField>
+                  <FormField label="Slug" hint="URL-friendly identifier">
+                    <Input placeholder="e.g., how-to-get-started" value={article.slug || ''} onChange={(e) => updateArticle(index, 'slug', e.target.value)} />
                   </FormField>
                 </div>
                 <FormField label="Article Content">
