@@ -356,7 +356,19 @@ export default function ProfilePage() {
         };
 
         // Merge: defaults -> draft -> db (db wins where it has data)
-        setFormData((prev) => ({ ...prev, ...(draft ?? {}), ...fromDb }));
+        // IMPORTANT: Don't let empty DB arrays overwrite a non-empty local draft (prevents "it saved then disappeared" UX).
+        setFormData((prev) => {
+          const merged: Partial<ClientProfile> = { ...prev, ...(draft ?? {}), ...fromDb };
+
+          if (((fromDb.practice_areas?.length ?? 0) === 0) && ((draft?.practice_areas?.length ?? 0) > 0)) {
+            merged.practice_areas = draft!.practice_areas;
+          }
+          if (((fromDb.medical_specialties?.length ?? 0) === 0) && ((draft?.medical_specialties?.length ?? 0) > 0)) {
+            merged.medical_specialties = draft!.medical_specialties;
+          }
+
+          return merged;
+        });
 
         // Mark steps with data as completed
         const stepsWithData: FormStep[] = [];
@@ -576,7 +588,7 @@ export default function ProfilePage() {
       const { data: verifyRow, error: verifyError } = await supabase
         .from('client_profile')
         .select(
-          'certifications, accreditations, google_business_url, google_maps_url, yelp_url, bbb_url, apple_maps_url, linkedin_url, facebook_url, instagram_url, youtube_url, twitter_url, tiktok_url, pinterest_url, other_profiles'
+          'certifications, accreditations, practice_areas, medical_specialties, google_business_url, google_maps_url, yelp_url, bbb_url, apple_maps_url, linkedin_url, facebook_url, instagram_url, youtube_url, twitter_url, tiktok_url, pinterest_url, other_profiles'
         )
         .eq('entity_id', result.entity_id)
         .maybeSingle();
@@ -586,6 +598,8 @@ export default function ProfilePage() {
       } else if (verifyRow) {
         const savedCertifications = ((verifyRow as any).certifications as any[]) || [];
         const savedAccreditations = ((verifyRow as any).accreditations as any[]) || [];
+        const savedPracticeAreas = ((verifyRow as any).practice_areas as any[]) || [];
+        const savedMedicalSpecialties = ((verifyRow as any).medical_specialties as any[]) || [];
 
         // Sync local state to what is actually stored
         setFormDataInternal((prev) => ({
@@ -593,6 +607,8 @@ export default function ProfilePage() {
           entity_id: result.entity_id,
           certifications: savedCertifications,
           accreditations: savedAccreditations,
+          practice_areas: savedPracticeAreas,
+          medical_specialties: savedMedicalSpecialties,
 
           google_business_url: (verifyRow as any).google_business_url ?? undefined,
           google_maps_url: (verifyRow as any).google_maps_url ?? undefined,
