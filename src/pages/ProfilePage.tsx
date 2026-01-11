@@ -334,7 +334,7 @@ export default function ProfilePage() {
           // Credentials + vertical-specific
           certifications: ((data as any).certifications as any[]) || [],
           accreditations: ((data as any).accreditations as any[]) || [],
-          practice_areas: ((data as any).practice_areas as any[]) || [],
+          practice_areas: normalizePracticeAreasForUi(((data as any).practice_areas as any[]) || []),
           medical_specialties: ((data as any).medical_specialties as any[]) || [],
           legal_profile: ((data as any).legal_profile as any) || undefined,
           medical_profile: ((data as any).medical_profile as any) || undefined,
@@ -414,6 +414,21 @@ export default function ProfilePage() {
     if (/^https?:\/\//i.test(v)) return v;
     return `https://${v}`;
   };
+
+  // Keep UI inputs friendly (comma-separated strings), but store arrays in the database.
+  const normalizeCommaListForUi = (value: any): string => {
+    if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+    if (typeof value === 'string') return value;
+    return '';
+  };
+
+  const normalizePracticeAreasForUi = (areas: any[]) =>
+    (areas || []).map((pa: any) => ({
+      ...pa,
+      // Accept either snake_case (preferred) or camelCase (defensive) keys from the backend
+      case_types: normalizeCommaListForUi(pa.case_types ?? pa.caseTypes),
+      service_areas: normalizeCommaListForUi(pa.service_areas ?? pa.serviceAreas),
+    }));
 
   const buildClientProfileUpsertPayload = () => {
     const businessName = (formData.business_name ?? '').trim() || 'Untitled';
@@ -649,7 +664,7 @@ export default function ProfilePage() {
           entity_id: result.entity_id,
           certifications: savedCertifications,
           accreditations: savedAccreditations,
-          practice_areas: savedPracticeAreas,
+          practice_areas: normalizePracticeAreasForUi(savedPracticeAreas),
           medical_specialties: savedMedicalSpecialties,
 
           google_business_url: (verifyRow as any).google_business_url ?? undefined,
