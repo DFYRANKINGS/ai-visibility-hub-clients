@@ -110,9 +110,8 @@ export interface CaseStudy {
 
 export interface Certification {
   name: string;
-  issuing_body?: string;
-  date_obtained?: string;
-  expiration_date?: string;
+  issuer?: string;
+  date?: string;
   credential_id?: string;
 }
 

@@ -12,7 +12,7 @@ interface CredentialsStepProps {
   onChange: (data: Partial<ClientProfile>) => void;
 }
 
-const emptyCertification: Certification = { name: '', issuing_body: '' };
+const emptyCertification: Certification = { name: '', issuer: '' };
 const emptyAccreditation: Accreditation = { name: '', organization: '' };
 
 const parseCommaList = (raw: string) =>
@@ -86,16 +86,16 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                 <div className="p-4 pt-0 space-y-4 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField label="Certification Name" required>
-                      <Input placeholder="e.g., ISO 9001" value={cert.name} onChange={(e) => updateCert(index, 'name', e.target.value)} />
+                      <Input placeholder="e.g., Board Certified Personal Injury Attorney" value={cert.name} onChange={(e) => updateCert(index, 'name', e.target.value)} />
                     </FormField>
-                    <FormField label="Issuing Body">
-                      <Input placeholder="e.g., ISO" value={cert.issuing_body || ''} onChange={(e) => updateCert(index, 'issuing_body', e.target.value)} />
+                    <FormField label="Issuer">
+                      <Input placeholder="e.g., State Bar of California" value={cert.issuer || ''} onChange={(e) => updateCert(index, 'issuer', e.target.value)} />
                     </FormField>
-                    <FormField label="Date Obtained">
-                      <Input type="date" value={cert.date_obtained || ''} onChange={(e) => updateCert(index, 'date_obtained', e.target.value)} />
+                    <FormField label="Date">
+                      <Input type="date" value={cert.date || ''} onChange={(e) => updateCert(index, 'date', e.target.value)} />
                     </FormField>
                     <FormField label="Credential ID">
-                      <Input placeholder="Optional" value={cert.credential_id || ''} onChange={(e) => updateCert(index, 'credential_id', e.target.value)} />
+                      <Input placeholder="e.g., ABC-12345" value={cert.credential_id || ''} onChange={(e) => updateCert(index, 'credential_id', e.target.value)} />
                     </FormField>
                   </div>
                   <div className="flex justify-end">
