@@ -13,7 +13,7 @@ interface CredentialsStepProps {
 }
 
 const emptyCertification: Certification = { name: '', issuing_body: '' };
-const emptyAccreditation: Accreditation = { name: '', accrediting_body: '' };
+const emptyAccreditation: Accreditation = { name: '', organization: '' };
 
 const parseCommaList = (raw: string) =>
   raw.split(',').map((s) => s.trim()).filter(Boolean);
@@ -130,13 +130,16 @@ export function CredentialsStep({ data, onChange }: CredentialsStepProps) {
                 <div className="p-4 pt-0 space-y-4 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField label="Accreditation Name" required>
-                      <Input placeholder="e.g., AAAHC" value={accred.name} onChange={(e) => updateAccred(index, 'name', e.target.value)} />
+                      <Input placeholder="e.g., Better Business Bureau Accreditation" value={accred.name} onChange={(e) => updateAccred(index, 'name', e.target.value)} />
                     </FormField>
-                    <FormField label="Accrediting Body">
-                      <Input placeholder="e.g., AAAHC" value={accred.accrediting_body || ''} onChange={(e) => updateAccred(index, 'accrediting_body', e.target.value)} />
+                    <FormField label="Organization">
+                      <Input placeholder="e.g., Better Business Bureau" value={accred.organization || ''} onChange={(e) => updateAccred(index, 'organization', e.target.value)} />
                     </FormField>
                     <FormField label="Date Obtained">
                       <Input type="date" value={accred.date_obtained || ''} onChange={(e) => updateAccred(index, 'date_obtained', e.target.value)} />
+                    </FormField>
+                    <FormField label="Accreditation URL">
+                      <Input placeholder="e.g., https://www.bbb.org/profile/example" value={accred.url || ''} onChange={(e) => updateAccred(index, 'url', e.target.value)} />
                     </FormField>
                   </div>
                   <div className="flex justify-end">
