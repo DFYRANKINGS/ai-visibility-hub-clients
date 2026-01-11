@@ -448,8 +448,25 @@ export default function ProfilePage() {
         title: (s?.title ?? s?.name ?? ''),
         name: (s?.name ?? s?.title ?? ''),
       })),
-      practice_areas: formData.practice_areas || [],
-      medical_specialties: formData.medical_specialties || [],
+      // Convert comma-separated strings to arrays for Agency App compatibility
+      practice_areas: (formData.practice_areas || []).map((pa: any) => ({
+        ...pa,
+        case_types: typeof pa.case_types === 'string' 
+          ? pa.case_types.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (pa.case_types || []),
+        service_areas: typeof pa.service_areas === 'string'
+          ? pa.service_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (pa.service_areas || []),
+      })),
+      medical_specialties: (formData.medical_specialties || []).map((ms: any) => ({
+        ...ms,
+        conditions_treated: typeof ms.conditions_treated === 'string'
+          ? ms.conditions_treated.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (ms.conditions_treated || []),
+        procedures: typeof ms.procedures === 'string'
+          ? ms.procedures.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : (ms.procedures || []),
+      })),
       products: formData.products || [],
 
       faqs: formData.faqs || [],
