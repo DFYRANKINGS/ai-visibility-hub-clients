@@ -435,6 +435,11 @@ export default function ProfilePage() {
       faqs: formData.faqs || [],
       help_articles: formData.help_articles || [],
       reviews: formData.reviews || [],
+
+      // Credentials
+      certifications: formData.certifications || [],
+      accreditations: formData.accreditations || [],
+
       // Merge phone + email into locations[0] for Agency App compatibility
       locations: (() => {
         const locs = formData.locations || [];
