@@ -427,11 +427,19 @@ export default function ProfilePage() {
       phone: formData.phone || null,
       email: formData.email || null,
 
+      // Vertical
+      vertical: formData.vertical || 'general',
+
+      // Offerings by vertical
       services: (formData.services || []).map((s: any) => ({
         ...s,
         title: (s?.title ?? s?.name ?? ''),
         name: (s?.name ?? s?.title ?? ''),
       })),
+      practice_areas: formData.practice_areas || [],
+      medical_specialties: formData.medical_specialties || [],
+      products: formData.products || [],
+
       faqs: formData.faqs || [],
       help_articles: formData.help_articles || [],
       reviews: formData.reviews || [],
@@ -439,6 +447,8 @@ export default function ProfilePage() {
       // Credentials
       certifications: formData.certifications || [],
       accreditations: formData.accreditations || [],
+      legal_profile: formData.legal_profile || null,
+      medical_profile: formData.medical_profile || null,
 
       // Merge phone + email into locations[0] for Agency App compatibility
       locations: (() => {
