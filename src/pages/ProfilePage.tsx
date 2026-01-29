@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientProfile, FormStep, PracticeArea, MedicalSpecialty, HelpArticle } from '@/types/profile';
+import { ClientProfile, FormStep, HelpArticle } from '@/types/profile';
 import { ProfileSidebar } from '@/components/ProfileSidebar';
 import { EntityStep } from '@/components/steps/EntityStep';
 import { EntityLinkingStep } from '@/components/steps/EntityLinkingStep';
 import { CredentialsStep } from '@/components/steps/CredentialsStep';
 import { ServicesStep } from '@/components/steps/ServicesStep';
-import { LegalPracticeAreasStep } from '@/components/steps/LegalPracticeAreasStep';
-import { MedicalSpecialtiesStep } from '@/components/steps/MedicalSpecialtiesStep';
 import { FAQsStep } from '@/components/steps/FAQsStep';
 import { ArticlesStep } from '@/components/steps/ArticlesStep';
 import { ReviewsStep } from '@/components/steps/ReviewsStep';
@@ -58,7 +56,7 @@ const saveProfileDraft = (userId: string, data: Partial<ClientProfile>) => {
 
 const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
   const businessName = data.business_name?.trim();
-  const fileName = businessName ? `${businessName} AI Visibility Profile.xlsx` : 'AI Visibility Profile.xlsx';
+  const fileName = businessName ? `${businessName} Business AI Visibility Profile.xlsx` : 'Business AI Visibility Profile.xlsx';
 
   const workbook = XLSX.utils.book_new();
 
@@ -111,56 +109,18 @@ const downloadProfileAsXlsx = (data: Partial<ClientProfile>) => {
     (data.services || []).map((s: any) => [s.title || s.name || '', s.description || ''])
   );
 
-  // Sheet 4: Practice Areas
-  addSheet('Practice Areas',
-    ['name', 'case_types', 'jurisdiction', 'service_areas', 'description'],
-    (data.practice_areas || []).map((p: any) => [
-      p.name || '', p.case_types || '', p.jurisdiction || '', p.service_areas || '', p.description || ''
-    ])
-  );
-
-  // Sheet 5: Medical Specialties
-  addSheet('Medical Specialties',
-    ['specialty_name', 'patient_population', 'conditions_treated', 'procedures_offered', 'description'],
-    (data.medical_specialties || []).map((s: any) => [
-      s.name || '', s.patient_population || '', s.conditions_treated || '', s.procedures_offered || '', s.description || ''
-    ])
-  );
-
-  // Sheet 6: Team Members (General)
+  // Sheet 4: Team Members
   addSheet('Team Members',
     ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'license_number', 'profile_links', 'certifications', 'areas_of_expertise', 'bio'],
     (data.team_members || []).map((t: any) => [
-      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', '',
+      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', t.license_number || '',
       (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
       (t.certifications || []).map((c: any) => c.name || '').join(', '),
       (t.specialties || []).join(', '), t.bio || ''
     ])
   );
 
-  // Sheet 7: Legal Team
-  addSheet('Legal Team',
-    ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'bar_number', 'profile_links', 'certifications', 'practice_areas', 'bio'],
-    (data.team_members || []).map((t: any) => [
-      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', t.bar_number || '',
-      (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
-      (t.certifications || []).map((c: any) => c.name || '').join(', '),
-      (t.specialties || []).join(', '), t.bio || ''
-    ])
-  );
-
-  // Sheet 8: Medical Team
-  addSheet('Medical Team',
-    ['full_name', 'role_title', 'linkedin_url', 'photo_url', 'npi_number', 'profile_links', 'certifications', 'medical_specialties', 'bio'],
-    (data.team_members || []).map((t: any) => [
-      t.member_name || t.name || '', t.role || t.title || '', t.linkedin_url || '', t.photo_url || '', t.npi_number || '',
-      (t.profile_urls || []).map((p: any) => `${p.platform || ''}:${p.url || ''}`).join(', '),
-      (t.certifications || []).map((c: any) => c.name || '').join(', '),
-      (t.specialties || []).join(', '), t.bio || ''
-    ])
-  );
-
-  // Sheet 9: FAQs
+  // Sheet 5: FAQs
   addSheet('FAQs',
     ['question', 'answer', 'url'],
     (data.faqs || []).map((f: any) => [f.question || '', f.answer || '', ''])
@@ -831,10 +791,10 @@ export default function ProfilePage() {
 
   const stepLabels: Record<FormStep, string> = {
     entity: 'Organization',
-    team: formData.vertical === 'legal' ? 'Lawyers' : formData.vertical === 'medical' ? 'Healthcare Providers' : 'Associates',
+    team: 'Associates',
     entity_linking: 'Entity Linking',
     credentials: 'Credentials',
-    services: formData.vertical === 'legal' ? 'Practice Areas' : formData.vertical === 'medical' ? 'Specialties' : 'Services',
+    services: 'Services',
     faqs: 'FAQs',
     help_articles: 'Help Articles',
     reviews: 'Reviews',
@@ -890,7 +850,6 @@ export default function ProfilePage() {
             currentStep={currentStep} 
             completedSteps={completedSteps}
             onStepClick={handleStepClick}
-            vertical={formData.vertical}
           />
         </div>
 
@@ -906,24 +865,10 @@ export default function ProfilePage() {
 
             <div className="space-y-6">
               {currentStep === 'entity' && <EntityStep data={formData} onChange={updateFormData} errors={errors} />}
-              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => updateFormData({ team_members: t })} vertical={formData.vertical} />}
+              {currentStep === 'team' && <TeamStep teamMembers={formData.team_members || []} onChange={(t) => updateFormData({ team_members: t })} />}
               {currentStep === 'entity_linking' && <EntityLinkingStep data={formData} onChange={updateFormData} />}
               {currentStep === 'credentials' && <CredentialsStep data={formData} onChange={updateFormData} />}
-              {currentStep === 'services' && (
-                formData.vertical === 'legal' ? (
-                  <LegalPracticeAreasStep 
-                    practiceAreas={formData.practice_areas || []} 
-                    onChange={(pa: PracticeArea[]) => updateFormData({ practice_areas: pa })} 
-                  />
-                ) : formData.vertical === 'medical' ? (
-                  <MedicalSpecialtiesStep 
-                    medicalSpecialties={formData.medical_specialties || []} 
-                    onChange={(ms: MedicalSpecialty[]) => updateFormData({ medical_specialties: ms })} 
-                  />
-                ) : (
-                  <ServicesStep services={formData.services || []} onChange={(s) => updateFormData({ services: s })} />
-                )
-              )}
+              {currentStep === 'services' && <ServicesStep services={formData.services || []} onChange={(s) => updateFormData({ services: s })} />}
               {currentStep === 'faqs' && <FAQsStep faqs={formData.faqs || []} onChange={(f) => updateFormData({ faqs: f })} />}
               {currentStep === 'help_articles' && <ArticlesStep articles={formData.help_articles || []} onChange={(a) => updateFormData({ help_articles: a })} />}
               {currentStep === 'reviews' && <ReviewsStep reviews={formData.reviews || []} onChange={(r) => updateFormData({ reviews: r })} />}

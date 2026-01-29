@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TeamMember, TeamMemberProfileUrl, TeamMemberCertification, BusinessVertical } from '@/types/profile';
+import { TeamMember, TeamMemberProfileUrl, TeamMemberCertification } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 interface TeamStepProps {
   teamMembers: TeamMember[];
   onChange: (teamMembers: TeamMember[]) => void;
-  vertical?: BusinessVertical;
 }
 
 const emptyMember: TeamMember = {
@@ -22,25 +21,9 @@ const emptyMember: TeamMember = {
   certifications: [],
 };
 
-export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamStepProps) {
+export function TeamStep({ teamMembers, onChange }: TeamStepProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(teamMembers.length > 0 ? 0 : null);
   const [specialtiesLocal, setSpecialtiesLocal] = useState<Record<number, string>>({});
-
-  const getLabel = () => {
-    switch (vertical) {
-      case 'legal': return 'Lawyers';
-      case 'medical': return 'Healthcare Providers';
-      default: return 'Associates';
-    }
-  };
-
-  const getDescription = () => {
-    switch (vertical) {
-      case 'legal': return 'Add lawyers and legal staff';
-      case 'medical': return 'Add healthcare providers and medical staff';
-      default: return 'Add team members and associates';
-    }
-  };
 
   const addMember = () => {
     onChange([...teamMembers, { ...emptyMember, profile_urls: [], certifications: [] }]);
@@ -102,7 +85,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
   };
 
   return (
-    <FormCard title={getLabel()} description={getDescription()}>
+    <FormCard title="Associates" description="Add team members and associates">
       <div className="space-y-4">
         {teamMembers.map((member, index) => (
           <div key={index} className="border border-border rounded-xl overflow-hidden bg-background">
@@ -113,7 +96,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   <User className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <span className="font-medium text-foreground block">{member.member_name || member.name || `${getLabel().slice(0, -1)} ${index + 1}`}</span>
+                  <span className="font-medium text-foreground block">{member.member_name || member.name || `Associate ${index + 1}`}</span>
                   {(member.role || member.title) && <span className="text-sm text-muted-foreground">{member.role || member.title}</span>}
                 </div>
               </div>
@@ -128,21 +111,9 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   <FormField label="Role/Title" required>
                     <Input placeholder="Partner, Associate, etc." value={member.role || member.title || ''} onChange={(e) => updateMember(index, 'role', e.target.value)} />
                   </FormField>
-                  {vertical === 'general' && (
-                    <FormField label="License Number">
-                      <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
-                    </FormField>
-                  )}
-                  {vertical === 'medical' && (
-                    <FormField label="NPI Number">
-                      <Input placeholder="Optional" value={member.npi_number || ''} onChange={(e) => updateMember(index, 'npi_number', e.target.value)} />
-                    </FormField>
-                  )}
-                  {vertical === 'legal' && (
-                    <FormField label="Bar Number">
-                      <Input placeholder="Optional" value={member.bar_number || ''} onChange={(e) => updateMember(index, 'bar_number', e.target.value)} />
-                    </FormField>
-                  )}
+                  <FormField label="License Number">
+                    <Input placeholder="Optional" value={member.license_number || ''} onChange={(e) => updateMember(index, 'license_number', e.target.value)} />
+                  </FormField>
                   <FormField label="LinkedIn URL">
                     <Input type="url" placeholder="https://linkedin.com/in/..." value={member.linkedin_url || ''} onChange={(e) => updateMember(index, 'linkedin_url', e.target.value)} />
                   </FormField>
@@ -151,7 +122,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
                   </FormField>
                   <FormField label="Specialties" hint="Comma-separated" className="md:col-span-2">
                     <Input
-                      placeholder="Corporate Law, M&A, etc."
+                      placeholder="Sales, Marketing, etc."
                       value={specialtiesLocal[index] ?? (member.specialties?.join(', ') || '')}
                       onChange={(e) => setSpecialtiesLocal({ ...specialtiesLocal, [index]: e.target.value })}
                       onBlur={() => {
@@ -272,7 +243,7 @@ export function TeamStep({ teamMembers, onChange, vertical = 'general' }: TeamSt
           </div>
         ))}
         <Button type="button" variant="outline" onClick={addMember} className="w-full h-12 border-dashed">
-          <Plus className="w-5 h-5 mr-2" />Add {getLabel().slice(0, -1)}
+          <Plus className="w-5 h-5 mr-2" />Add Associate
         </Button>
       </div>
     </FormCard>

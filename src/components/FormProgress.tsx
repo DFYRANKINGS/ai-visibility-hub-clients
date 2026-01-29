@@ -1,19 +1,18 @@
-import { FormStep, BusinessVertical } from '@/types/profile';
+import { FormStep } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, BadgeCheck, Scale, Stethoscope, Link, Users } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, BadgeCheck, Link, Users } from 'lucide-react';
 
 interface FormProgressProps {
   currentStep: FormStep;
   completedSteps: FormStep[];
-  vertical?: BusinessVertical;
 }
 
-const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; icon: React.ElementType }[] => [
+const steps: { id: FormStep; label: string; icon: React.ElementType }[] = [
   { id: 'entity', label: 'Organization', icon: Building2 },
-  { id: 'team', label: vertical === 'legal' ? 'Lawyers' : vertical === 'medical' ? 'Healthcare Providers' : 'Associates', icon: Users },
+  { id: 'team', label: 'Associates', icon: Users },
   { id: 'entity_linking', label: 'Entity Linking', icon: Link },
   { id: 'credentials', label: 'Credentials', icon: BadgeCheck },
-  { id: 'services', label: vertical === 'legal' ? 'Practice Areas' : vertical === 'medical' ? 'Specialties' : 'Services', icon: vertical === 'legal' ? Scale : vertical === 'medical' ? Stethoscope : Briefcase },
+  { id: 'services', label: 'Services', icon: Briefcase },
   { id: 'faqs', label: 'FAQs', icon: HelpCircle },
   { id: 'help_articles', label: 'Help Articles', icon: FileText },
   { id: 'reviews', label: 'Reviews', icon: Star },
@@ -23,8 +22,7 @@ const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; i
   { id: 'review', label: 'Review', icon: Check },
 ];
 
-export function FormProgress({ currentStep, completedSteps, vertical }: FormProgressProps) {
-  const steps = getSteps(vertical);
+export function FormProgress({ currentStep, completedSteps }: FormProgressProps) {
   const currentIndex = steps.findIndex((s) => s.id === currentStep);
 
   return (

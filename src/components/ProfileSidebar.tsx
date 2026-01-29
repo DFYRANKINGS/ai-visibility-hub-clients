@@ -1,23 +1,17 @@
-import { FormStep, BusinessVertical } from '@/types/profile';
+import { FormStep } from '@/types/profile';
 import { cn } from '@/lib/utils';
-import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Scale, Stethoscope, Link, Users } from 'lucide-react';
+import { Check, Building2, Briefcase, HelpCircle, FileText, Star, Award, Newspaper, FolderKanban, ClipboardCheck, BadgeCheck, Link, Users } from 'lucide-react';
 
 interface ProfileSidebarProps {
   currentStep: FormStep;
   completedSteps: FormStep[];
   onStepClick: (step: FormStep) => void;
-  vertical?: BusinessVertical;
 }
 
-const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; description: string; icon: React.ElementType }[] => [
+const steps: { id: FormStep; label: string; description: string; icon: React.ElementType }[] = [
   { id: 'entity', label: 'Organization', description: 'Business info & locations', icon: Building2 },
-  { 
-    id: 'services', 
-    label: vertical === 'legal' ? 'Practice Areas' : vertical === 'medical' ? 'Specialties' : 'Services', 
-    description: vertical === 'legal' ? 'Legal practice areas' : vertical === 'medical' ? 'Medical specialties' : 'What you offer', 
-    icon: vertical === 'legal' ? Scale : vertical === 'medical' ? Stethoscope : Briefcase 
-  },
-  { id: 'team', label: vertical === 'legal' ? 'Lawyers' : vertical === 'medical' ? 'Healthcare Providers' : 'Associates', description: 'Team members', icon: Users },
+  { id: 'services', label: 'Services', description: 'What you offer', icon: Briefcase },
+  { id: 'team', label: 'Associates', description: 'Team members', icon: Users },
   { id: 'entity_linking', label: 'Entity Linking', description: 'External profiles & links', icon: Link },
   { id: 'credentials', label: 'Credentials', description: 'Certifications & accreditations', icon: BadgeCheck },
   { id: 'faqs', label: 'FAQs', description: 'Common questions', icon: HelpCircle },
@@ -29,8 +23,7 @@ const getSteps = (vertical?: BusinessVertical): { id: FormStep; label: string; d
   { id: 'review', label: 'Review & Submit', description: 'Final review', icon: ClipboardCheck },
 ];
 
-export function ProfileSidebar({ currentStep, completedSteps, onStepClick, vertical }: ProfileSidebarProps) {
-  const steps = getSteps(vertical);
+export function ProfileSidebar({ currentStep, completedSteps, onStepClick }: ProfileSidebarProps) {
   
   return (
     <aside className="w-72 shrink-0 border-r border-border bg-card/50 overflow-y-auto">
