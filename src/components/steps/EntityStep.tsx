@@ -1,9 +1,8 @@
-import { ClientProfile, BusinessVertical, Location } from '@/types/profile';
+import { ClientProfile, Location } from '@/types/profile';
 import { FormCard } from '@/components/FormCard';
 import { FormField } from '@/components/FormField';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EntityStepProps {
   data: Partial<ClientProfile>;
@@ -55,20 +54,12 @@ export function EntityStep({ data, onChange, errors }: EntityStepProps) {
             />
           </FormField>
 
-          <FormField label="Business Vertical" hint="Select your industry type">
-            <Select
-              value={data.vertical || 'general'}
-              onValueChange={(value: BusinessVertical) => handleChange('vertical', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select vertical" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">General Business</SelectItem>
-                <SelectItem value="legal">Legal Services</SelectItem>
-                <SelectItem value="medical">Medical/Healthcare</SelectItem>
-              </SelectContent>
-            </Select>
+          <FormField label="Category" hint="Your business category">
+            <Input
+              placeholder="e.g., Technology, Retail, Consulting"
+              value={data.category || ''}
+              onChange={(e) => handleChange('category', e.target.value)}
+            />
           </FormField>
 
           <FormField label="Website URL">
