@@ -208,9 +208,7 @@ export default function ProfilePage() {
     agency_user_id: agencyUserId,
     services: [], faqs: [], help_articles: [], reviews: [],
     locations: [], team_members: [], awards: [], media_mentions: [], case_studies: [],
-    certifications: [], accreditations: [],
-    practice_areas: [], medical_specialties: [],
-    vertical: 'general',
+    certifications: [], accreditations: [], products: [],
   }));
 
   // Wrapper that marks form as dirty when user makes changes
@@ -283,7 +281,7 @@ export default function ProfilePage() {
             name: (s?.name ?? s?.title ?? ''),
           })),
           faqs: (data.faqs as any[]) || [],
-          help_articles: ((data as any).help_articles as any[]) || [],
+          help_articles: ((data as any).articles as any[]) || [],
           reviews: (data.reviews as any[]) || [],
           locations: (data.locations as any[]) || [],
           team_members: (data.team_members as any[]) || [],
@@ -291,13 +289,9 @@ export default function ProfilePage() {
           media_mentions: (data.media_mentions as any[]) || [],
           case_studies: (data.case_studies as any[]) || [],
 
-          // Credentials + vertical-specific
+          // Credentials
           certifications: ((data as any).certifications as any[]) || [],
           accreditations: ((data as any).accreditations as any[]) || [],
-          practice_areas: normalizePracticeAreasForUi(((data as any).practice_areas as any[]) || []),
-          medical_specialties: ((data as any).medical_specialties as any[]) || [],
-          legal_profile: ((data as any).legal_profile as any) || undefined,
-          medical_profile: ((data as any).medical_profile as any) || undefined,
           
           // Entity linking
           google_business_url: (data as any).google_business_url || undefined,
@@ -320,13 +314,6 @@ export default function ProfilePage() {
         setFormData((prev) => {
           const merged: Partial<ClientProfile> = { ...prev, ...(draft ?? {}), ...fromDb };
 
-          if (((fromDb.practice_areas?.length ?? 0) === 0) && ((draft?.practice_areas?.length ?? 0) > 0)) {
-            merged.practice_areas = draft!.practice_areas;
-          }
-          if (((fromDb.medical_specialties?.length ?? 0) === 0) && ((draft?.medical_specialties?.length ?? 0) > 0)) {
-            merged.medical_specialties = draft!.medical_specialties;
-          }
-
           return merged;
         });
 
@@ -339,9 +326,9 @@ export default function ProfilePage() {
         if (((fromDb.certifications as any[])?.length || 0) > 0 || ((fromDb.accreditations as any[])?.length || 0) > 0) {
           stepsWithData.push('credentials');
         }
-        if ((data.services as any[])?.length > 0 || ((data as any).practice_areas as any[])?.length > 0 || ((data as any).medical_specialties as any[])?.length > 0) stepsWithData.push('services');
+        if ((data.services as any[])?.length > 0) stepsWithData.push('services');
         if ((data.faqs as any[])?.length > 0) stepsWithData.push('faqs');
-        if (((data as any).help_articles as any[])?.length > 0) stepsWithData.push('help_articles');
+        if (((data as any).articles as any[])?.length > 0) stepsWithData.push('help_articles');
         if ((data.reviews as any[])?.length > 0) stepsWithData.push('reviews');
         if ((data.awards as any[])?.length > 0) stepsWithData.push('awards');
         if ((data.media_mentions as any[])?.length > 0) stepsWithData.push('media');
@@ -375,20 +362,8 @@ export default function ProfilePage() {
     return `https://${v}`;
   };
 
-  // Keep UI inputs friendly (comma-separated strings), but store arrays in the database.
-  const normalizeCommaListForUi = (value: any): string => {
-    if (Array.isArray(value)) return value.filter(Boolean).join(', ');
-    if (typeof value === 'string') return value;
-    return '';
-  };
 
-  const normalizePracticeAreasForUi = (areas: any[]) =>
-    (areas || []).map((pa: any) => ({
-      ...pa,
-      // Accept either snake_case (preferred) or camelCase (defensive) keys from the backend
-      case_types: normalizeCommaListForUi(pa.case_types ?? pa.caseTypes),
-      service_areas: normalizeCommaListForUi(pa.service_areas ?? pa.serviceAreas),
-    }));
+
 
   const buildClientProfileUpsertPayload = () => {
     const businessName = (formData.business_name ?? '').trim() || 'Untitled';
@@ -414,8 +389,8 @@ export default function ProfilePage() {
       phone: formData.phone || null,
       email: formData.email || null,
 
-      // Vertical
-      vertical: formData.vertical || 'general',
+      // Business vertical
+      vertical: 'general',
 
       // Offerings by vertical
       services: (formData.services || []).map((s: any) => ({
@@ -423,45 +398,15 @@ export default function ProfilePage() {
         title: (s?.title ?? s?.name ?? ''),
         name: (s?.name ?? s?.title ?? ''),
       })),
-      // Practice areas: store arrays (and also camelCase aliases) for cross-app compatibility
-      practice_areas: (formData.practice_areas || []).map((pa: any) => {
-        const caseTypesArr = typeof pa.case_types === 'string'
-          ? pa.case_types.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (Array.isArray(pa.case_types) ? pa.case_types : []);
-
-        const serviceAreasArr = typeof pa.service_areas === 'string'
-          ? pa.service_areas.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (Array.isArray(pa.service_areas) ? pa.service_areas : []);
-
-        return {
-          ...pa,
-          case_types: caseTypesArr,
-          service_areas: serviceAreasArr,
-          // Defensive aliases if the Agency App expects camelCase keys
-          caseTypes: caseTypesArr,
-          serviceAreas: serviceAreasArr,
-        };
-      }),
-      medical_specialties: (formData.medical_specialties || []).map((ms: any) => ({
-        ...ms,
-        conditions_treated: typeof ms.conditions_treated === 'string'
-          ? ms.conditions_treated.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (ms.conditions_treated || []),
-        procedures: typeof ms.procedures === 'string'
-          ? ms.procedures.split(',').map((s: string) => s.trim()).filter(Boolean)
-          : (ms.procedures || []),
-      })),
       products: formData.products || [],
 
       faqs: formData.faqs || [],
-      help_articles: formData.help_articles || [],
+      articles: formData.help_articles || [],
       reviews: formData.reviews || [],
 
       // Credentials
       certifications: formData.certifications || [],
       accreditations: formData.accreditations || [],
-      legal_profile: formData.legal_profile || null,
-      medical_profile: formData.medical_profile || null,
 
       // Merge phone + email into locations[0] for Agency App compatibility
       locations: (() => {
@@ -589,7 +534,7 @@ export default function ProfilePage() {
       const { data: verifyRow, error: verifyError } = await supabase
         .from('client_profile')
         .select(
-          'certifications, accreditations, practice_areas, medical_specialties, google_business_url, google_maps_url, yelp_url, bbb_url, apple_maps_url, linkedin_url, facebook_url, instagram_url, youtube_url, twitter_url, tiktok_url, pinterest_url, other_profiles'
+          'certifications, accreditations, google_business_url, google_maps_url, yelp_url, bbb_url, apple_maps_url, linkedin_url, facebook_url, instagram_url, youtube_url, twitter_url, tiktok_url, pinterest_url, other_profiles'
         )
         .eq('entity_id', result.entity_id)
         .maybeSingle();
@@ -615,8 +560,6 @@ export default function ProfilePage() {
       } else if (verifyRow) {
         const savedCertifications = ((verifyRow as any).certifications as any[]) || [];
         const savedAccreditations = ((verifyRow as any).accreditations as any[]) || [];
-        const savedPracticeAreas = ((verifyRow as any).practice_areas as any[]) || [];
-        const savedMedicalSpecialties = ((verifyRow as any).medical_specialties as any[]) || [];
 
         // Sync local state to what is actually stored
         setFormDataInternal((prev) => ({
@@ -624,8 +567,6 @@ export default function ProfilePage() {
           entity_id: result.entity_id,
           certifications: savedCertifications,
           accreditations: savedAccreditations,
-          practice_areas: normalizePracticeAreasForUi(savedPracticeAreas),
-          medical_specialties: savedMedicalSpecialties,
 
           google_business_url: (verifyRow as any).google_business_url ?? undefined,
           google_maps_url: (verifyRow as any).google_maps_url ?? undefined,
@@ -642,22 +583,8 @@ export default function ProfilePage() {
           other_profiles: ((verifyRow as any).other_profiles as any[]) || [],
         }));
 
-        // If the user attempted to save vertical arrays or links but backend returned empty/null, warn loudly.
+        // If the user attempted to save links but backend returned empty/null, warn loudly.
         const missingAfterSave: string[] = [];
-
-        const intendedPracticeAreas = Array.isArray((profilePayload as any).practice_areas)
-          ? ((profilePayload as any).practice_areas as any[]).length
-          : 0;
-        const intendedMedicalSpecialties = Array.isArray((profilePayload as any).medical_specialties)
-          ? ((profilePayload as any).medical_specialties as any[]).length
-          : 0;
-
-        if (intendedPracticeAreas > 0 && savedPracticeAreas.length === 0) {
-          missingAfterSave.push('practice_areas');
-        }
-        if (intendedMedicalSpecialties > 0 && savedMedicalSpecialties.length === 0) {
-          missingAfterSave.push('medical_specialties');
-        }
 
         const attemptedLinkKeys = [
           'google_business_url',

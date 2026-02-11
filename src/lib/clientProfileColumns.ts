@@ -30,13 +30,9 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   // Credentials
   'certifications',
   'accreditations',
-  'legal_profile',
-  'medical_profile',
 
-  // Offerings by vertical
+  // Offerings
   'services',
-  'practice_areas',
-  'medical_specialties',
   'products',
 
   // Content JSONB arrays
@@ -45,7 +41,6 @@ export const CLIENT_PROFILE_COLUMNS = new Set([
   'media_mentions',
   'awards',
   'faqs',
-  'help_articles',
   'articles',
 
   // Authority / social profiles
