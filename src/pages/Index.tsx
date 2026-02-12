@@ -4,11 +4,11 @@ import { toast } from "@/hooks/use-toast";
 import { FormField } from "@/components/FormField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Loader2, Sparkles, Eye, EyeOff, ArrowRight, AlertTriangle } from "lucide-react";
 import ProfilePage from "@/pages/ProfilePage";
 
 export default function Index() {
-  const { user, loading: authLoading, signIn, signUp } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, authUnavailable } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -77,6 +77,15 @@ export default function Index() {
           <h2 className="font-heading text-xl font-semibold text-foreground mb-6">
             {isLogin ? "Welcome Back" : "Create Account"}
           </h2>
+
+          {authUnavailable && (
+            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 mb-4">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">
+                Auth temporarily unavailable. Please try again in a few minutes.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleAuthSubmit} className="space-y-4" aria-label="Authentication form">
             <FormField label="Email">
